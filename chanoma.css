@@ -1,0 +1,324 @@
+@charset "UTF-8";
+@import url("https://fonts.googleapis.com/css?family=Kosugi+Maru|M+PLUS+Rounded+1c");
+@import url("https://use.fontawesome.com/releases/v5.15.1/css/all.css");
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.4);
+  border: none;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  -webkit-box-shadow: none;
+          box-shadow: none;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+:root {
+  --column-minus: calc(var(--margin-side) * 2 + 10px);
+}
+
+@media screen and (min-width: 1261px) {
+  :root {
+    --margin-side: calc(50vw - 592px);
+  }
+}
+
+@media screen and (min-width: 992px) and (max-width: 1260px) {
+  :root {
+    --margin-side: 38px;
+  }
+}
+
+@media screen and (min-width: 768px) and (max-width: 991px) {
+  :root {
+    --margin-side: 23px;
+  }
+}
+
+@media screen and (max-width: 767px) {
+  :root {
+    --margin-side: 8px;
+  }
+}
+
+body {
+  font-family: "UD デジタル 教科書体 NK-R", "Kosugi Maru", 
+ "Roboto",Helvetica,Arial,"Hiragino Sans",sans-serif !important;
+  padding: 0 var(--margin-side);
+}
+
+main {
+  position: relative;
+  width: 100%;
+  height: calc(100% - 30px);
+}
+
+header {
+  position: relative;
+  width: 100%;
+  height: auto;
+}
+
+#title {
+  font-size: 20px;
+}
+
+#title img {
+  vertical-align: text-top;
+}
+
+#exlinks {
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin: 0;
+  padding: 0;
+}
+
+#exlinks li {
+  display: inline-block;
+  margin-left: 1px;
+}
+
+#exlinks li a img {
+  width: 20px;
+  height: auto;
+  border-radius: 50%;
+}
+
+.label {
+  font-size: 16px;
+  border: 1px solid gray;
+}
+
+#content {
+  display: -ms-grid;
+  display: grid;
+  gap: 20px;
+  -ms-grid-columns: 1fr 3fr 1fr;
+      grid-template-columns: 1fr 3fr 1fr;
+  -ms-grid-rows: 1fr 2fr;
+      grid-template-rows: 1fr 2fr;
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+#pins {
+  -ms-grid-column: 1;
+  -ms-grid-column-span: 1;
+  grid-column: 1 / 2;
+  -ms-grid-row: 1;
+  -ms-grid-row-span: 1;
+  grid-row: 1 / 2;
+}
+
+#tags {
+  -ms-grid-column: 1;
+  -ms-grid-column-span: 1;
+  grid-column: 1 / 2;
+  -ms-grid-row: 2;
+  -ms-grid-row-span: 1;
+  grid-row: 2 / 3;
+}
+
+#body {
+  -ms-grid-column: 2;
+  -ms-grid-column-span: 1;
+  grid-column: 2 / 3;
+  -ms-grid-row: 1;
+  -ms-grid-row-span: 2;
+  grid-row: 1 / 3;
+  position: relative;
+}
+
+#links {
+  -ms-grid-column: 3;
+  -ms-grid-column-span: 1;
+  grid-column: 3 / 4;
+  -ms-grid-row: 1;
+  -ms-grid-row-span: 2;
+  grid-row: 1 / 3;
+}
+
+#content ul {
+  margin: 0;
+}
+
+/* つぶやき本体 */
+.body-text {
+  height: 74vh;
+  overflow-y: scroll;
+  padding-right: 10px;
+}
+
+.body-text > div .tag-note {
+  background-color: #f8f8f8;
+}
+
+.note-title {
+  background-color: #f8f8f8;
+}
+
+.body-text blockquote {
+  -webkit-box-shadow: 2px 2px 2px gray;
+          box-shadow: 2px 2px 2px gray;
+  border: 1px solid #ddd;
+  -webkit-margin-start: 20px;
+          margin-inline-start: 20px;
+  -webkit-margin-end: 20px;
+          margin-inline-end: 20px;
+  padding: 10px;
+}
+
+.body-tag {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+}
+
+.page-link, .link-item {
+  cursor: pointer;
+  color: blue;
+  margin-right: 2px;
+}
+
+.page-link:hover, .link-item:hover {
+  background-color: #eee;
+}
+
+.forwardlink::before, .implyforwardlink::before, .backlink::before, .implybacklink::before, .twohoplink::before, .pinned::before, .body-text ul li .tag-note::before, .node-icon {
+  font-family: 'Font Awesome 5 Free' !important;
+  font-weight: 900;
+  font-size: 0.8rem;
+  padding-left: 2px;
+  padding-right: 4px;
+}
+
+.forwardlink::before, .implyforwardlink::before {
+  content: "\f101";
+}
+
+.backlink::before, .implybacklink::before {
+  content: "\f100";
+}
+
+.twohoplink::before {
+  content: "\f105";
+}
+
+.emptylink {
+  color: #f06f48;
+}
+
+.implybacklink, .implyforwardlink {
+  color: #23b848;
+}
+
+.datelabel {
+  background-color: #888;
+  color: #fff;
+  margin-top: 6px;
+}
+
+.datetext {
+  margin: 4px 0 20px;
+}
+
+.pin-parent {
+  font-size: 14px;
+}
+
+.pinned {
+  cursor: pointer;
+}
+
+.pinned:hover {
+  background-color: #eee;
+}
+
+.pinned::before {
+  font-size: 0.5rem;
+  content: "\f08d";
+}
+
+.pickup::before {
+  content: "\f0d0";
+}
+
+ul {
+  -webkit-margin-before: 0;
+          margin-block-start: 0;
+  -webkit-margin-after: 0;
+          margin-block-end: 0;
+  -webkit-padding-start: 14px;
+          padding-inline-start: 14px;
+  list-style-type: none;
+  width: auto;
+}
+
+li {
+  position: relative;
+}
+
+.body-text ul li .tag-note::before {
+  content: "\f105";
+  vertical-align: 1px;
+}
+
+ul.link-parent, ul.pin-parent {
+  -webkit-padding-start: 0;
+          padding-inline-start: 0;
+}
+
+.tag-title {
+  color: #0b7049;
+  background-color: #e2faf6;
+}
+
+.tag-parent {
+  font-size: 12px;
+}
+
+.tag-note {
+  color: unset;
+}
+
+.tag-title, .tag-note, .note-title {
+  cursor: pointer;
+}
+
+.tag-title:hover, .tag-note:hover, .note-title:hover {
+  background-color: #eee;
+}
+
+.node-icon {
+  position: absolute;
+  top: 1px;
+  left: -12px;
+  color: #0b7049;
+}
+
+.fa-caret-right {
+  cursor: -webkit-zoom-in;
+  cursor: zoom-in;
+}
+
+.fa-caret-down {
+  cursor: -webkit-zoom-out;
+  cursor: zoom-out;
+}
+
+.hiddennode {
+  display: none;
+}
+/*# sourceMappingURL=chanoma.css.map */
