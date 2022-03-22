@@ -355,7 +355,6 @@ function SetBody(title){
     for(let i = 0; i < masterdata.length; i++){
         if(title==masterdata[i].title){
             document.querySelector(".body-text").innerHTML = ProcessText(masterdata[i].body);
-            CheckLink();
 
             // 下部のタグ欄を生成
             let tagarea = document.querySelector(".body-tag");
@@ -388,6 +387,7 @@ function SetBody(title){
     BuildImplyBackLinks();
     BuildImplyforwardLinks();
     AddEventByClassName("tag-title","click",BuildTagBody);
+    CheckLink();
 }
 function BuildTagBody(){ // タグのonclickで発動
     ClearBody();
