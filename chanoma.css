@@ -168,9 +168,8 @@ header {
 
 /* つぶやき本体 */
 .body-text {
-  font-size: 18px;
-  padding-right: 16px;
-  line-height: 22px;
+  font-size: 16px;
+  line-height: 20px;
   padding-right: 10px;
 }
 
@@ -354,14 +353,19 @@ ul.link-parent, ul.pin-parent {
         grid-template-rows: 2fr 3fr 3fr;
   }
   #body {
+    -ms-grid-column: 1;
+    -ms-grid-column-span: 1;
+    grid-column: 1 / 2;
     -ms-grid-row: 1;
     -ms-grid-row-span: 3;
     grid-row: 1 / 4;
   }
-  #links {
-    -ms-grid-column: 1;
+  #pins, #tags, #links {
+    -ms-grid-column: 2;
     -ms-grid-column-span: 1;
-    grid-column: 1 / 2;
+    grid-column: 2 / 3;
+  }
+  #links {
     -ms-grid-row: 2;
     -ms-grid-row-span: 1;
     grid-row: 2 / 3;
@@ -370,6 +374,10 @@ ul.link-parent, ul.pin-parent {
     -ms-grid-row: 3;
     -ms-grid-row-span: 1;
     grid-row: 3 / 4;
+  }
+  .body-text {
+    font-size: 14px;
+    line-height: 18px;
   }
 }
 /*# sourceMappingURL=chanoma.css.map */
