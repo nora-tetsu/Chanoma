@@ -464,25 +464,28 @@ function BuildDateOrder(type){
     }
     for(let i = 0; i < N; i++){
         let date = sorted[i][type].substr(0,10);
-        let datediv;
+        let datediv,dateul;
         if(!document.querySelector('[name="'+date+'"]')){
             datediv = document.createElement("div");
             datediv.setAttribute("name",date);
             let datelabel = document.createElement("p");
             datelabel.innerText = date;
             datelabel.className = "datelabel";
+            dateul = document.createElement("ul");
             document.querySelector(".body-text").appendChild(datediv);
             datediv.appendChild(datelabel);
+            datediv.appendChild(dateul);
         }else{
-            datediv = document.querySelector('[name="'+date+'"]')
+            datediv = document.querySelector('[name="'+date+'"]');
+            dateul = datediv.querySelector("ul");
         }
-        let texttitle = document.createElement("p");
+        let texttitle = document.createElement("li");
         texttitle.innerText = sorted[i].title;
-        texttitle.className = "note-title";
-        datediv.appendChild(texttitle);
+        texttitle.className = "date-note";
+        dateul.appendChild(texttitle);
         CheckLink();
     }
-    AddEventByClassName("note-title","click",BuildBody);
+    AddEventByClassName("date-note","click",BuildBody);
 }
 function CreatedOrder(){
     BuildDateOrder("created");

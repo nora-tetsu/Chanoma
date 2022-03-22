@@ -6,13 +6,13 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.4);
+  background: rgba(0, 0, 0, 0.05);
   border: none;
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(0, 0, 0, 0.1);
   border-radius: 10px;
   -webkit-box-shadow: none;
           box-shadow: none;
@@ -59,21 +59,22 @@ body {
 main {
   position: relative;
   width: 100%;
-  height: calc(100% - 30px);
+  height: calc(100% - 50px);
 }
 
 header {
   position: relative;
   width: 100%;
-  height: auto;
+  margin-top: 16px;
 }
 
 #title {
-  font-size: 20px;
+  font-size: 24px;
 }
 
 #title img {
   vertical-align: text-top;
+  height: auto;
 }
 
 #exlinks {
@@ -90,7 +91,7 @@ header {
 }
 
 #exlinks li a img {
-  width: 20px;
+  width: 24px;
   height: auto;
   border-radius: 50%;
 }
@@ -111,6 +112,7 @@ header {
   width: 100%;
   height: 100%;
   position: relative;
+  margin-top: 12px;
 }
 
 #pins {
@@ -150,14 +152,25 @@ header {
   grid-row: 1 / 3;
 }
 
+#content > div {
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+#content > div > p {
+  margin-top: 0;
+  word-break: break-all;
+}
+
 #content ul {
   margin: 0;
 }
 
 /* つぶやき本体 */
 .body-text {
-  height: 74vh;
-  overflow-y: scroll;
+  font-size: 18px;
+  padding-right: 16px;
+  line-height: 22px;
   padding-right: 10px;
 }
 
@@ -167,6 +180,10 @@ header {
 
 .note-title {
   background-color: #f8f8f8;
+}
+
+.body-title {
+  font-size: 18px;
 }
 
 .body-text blockquote {
@@ -180,10 +197,16 @@ header {
   padding: 10px;
 }
 
+.body-text h3 {
+  -webkit-margin-after: 0;
+          margin-block-end: 0;
+  -webkit-margin-before: 0;
+          margin-block-start: 0;
+}
+
 .body-tag {
-  position: absolute;
-  bottom: 0;
   width: 100%;
+  margin-bottom: 4px;
 }
 
 .page-link, .link-item {
@@ -196,7 +219,7 @@ header {
   background-color: #eee;
 }
 
-.forwardlink::before, .implyforwardlink::before, .backlink::before, .implybacklink::before, .twohoplink::before, .pinned::before, .body-text ul li .tag-note::before, .node-icon {
+.forwardlink::before, .implyforwardlink::before, .backlink::before, .implybacklink::before, .twohoplink::before, .pinned::before, .body-text ul li .tag-note::before, .date-note::before, .node-icon {
   font-family: 'Font Awesome 5 Free' !important;
   font-weight: 900;
   font-size: 0.8rem;
@@ -270,7 +293,7 @@ li {
   position: relative;
 }
 
-.body-text ul li .tag-note::before {
+.body-text ul li .tag-note::before, .date-note::before {
   content: "\f105";
   vertical-align: 1px;
 }
@@ -278,6 +301,7 @@ li {
 ul.link-parent, ul.pin-parent {
   -webkit-padding-start: 0;
           padding-inline-start: 0;
+  font-size: 14px;
 }
 
 .tag-title {
@@ -293,11 +317,11 @@ ul.link-parent, ul.pin-parent {
   color: unset;
 }
 
-.tag-title, .tag-note, .note-title {
+.tag-title, .tag-note, .note-title, .date-note {
   cursor: pointer;
 }
 
-.tag-title:hover, .tag-note:hover, .note-title:hover {
+.tag-title:hover, .tag-note:hover, .note-title:hover, .date-note:hover {
   background-color: #eee;
 }
 
@@ -320,5 +344,32 @@ ul.link-parent, ul.pin-parent {
 
 .hiddennode {
   display: none;
+}
+
+@media screen and (max-width: 767px) {
+  #content {
+    -ms-grid-columns: 1fr 3fr;
+        grid-template-columns: 1fr 3fr;
+    -ms-grid-rows: 2fr 3fr 3fr;
+        grid-template-rows: 2fr 3fr 3fr;
+  }
+  #body {
+    -ms-grid-row: 1;
+    -ms-grid-row-span: 3;
+    grid-row: 1 / 4;
+  }
+  #links {
+    -ms-grid-column: 1;
+    -ms-grid-column-span: 1;
+    grid-column: 1 / 2;
+    -ms-grid-row: 2;
+    -ms-grid-row-span: 1;
+    grid-row: 2 / 3;
+  }
+  #tags {
+    -ms-grid-row: 3;
+    -ms-grid-row-span: 1;
+    grid-row: 3 / 4;
+  }
 }
 /*# sourceMappingURL=chanoma.css.map */
