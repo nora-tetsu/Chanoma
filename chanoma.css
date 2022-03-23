@@ -193,6 +193,10 @@ header {
           margin-inline-start: 20px;
   -webkit-margin-end: 20px;
           margin-inline-end: 20px;
+          -webkit-margin-before: 5px;
+          margin-block-start: 5px;
+  -webkit-margin-after: 5px;
+          margin-block-end: 5px;
   padding: 10px;
 }
 

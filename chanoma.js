@@ -27,7 +27,7 @@ function Starting(){
     BuildExlinks();
     BuildPinnedList();
     BuildTagList();
-    SetBody("About");
+    SetBody("About茶の間");
 }
 
 // 以下function
@@ -82,8 +82,9 @@ function BuildPinnedList(){
 // 分類タグ欄を生成（左列下部）
 function BuildTagList(){
     const list = document.getElementById("tags")
-    for(let i = 0; i < masterdata.length; i++){
-        let inputtag = masterdata[i].tag;
+    const sorted = SortCreatedOrder();
+    for(let i = 0; i < sorted.length; i++){
+        let inputtag = sorted[i].tag;
         if(inputtag=="") continue;
         let tags = inputtag.split("/");
         if(!list.querySelector('[name="'+inputtag+'"]')){
@@ -120,12 +121,12 @@ function BuildTagList(){
     }
     
     // フォルダが先に生成されるようにtag-note構築は分けて処理
-    for(let i = 0; i < masterdata.length; i++){
-        let inputtag = masterdata[i].tag;
+    for(let i = 0; i < sorted.length; i++){
+        let inputtag = sorted[i].tag;
         let li = document.createElement("li");
         let tagNote = document.createElement("span");
         tagNote.className = "tag-note";
-        tagNote.innerText = masterdata[i].title;
+        tagNote.innerText = sorted[i].title;
         li.appendChild(tagNote);
         let target;
         if(inputtag==""){
@@ -177,9 +178,10 @@ function ProcessText(txt){
     if(match_quote!=null){
         for(let i = 0; i < match_quote.length; i++){
             let link = match_quote[i].replace(/\[\>(.*)\]/,'<blockquote>$1</blockquote>');
-            editedtxt = editedtxt.replace(match_quote[i],link);
+            editedtxt = editedtxt.replace(match_quote[i],link).replace('</blockquote><br>','</blockquote>');
         }
     }
+    editedtxt = editedtxt.replaceAll("</h3><br>","</h3>");
     return editedtxt;
 }
 
