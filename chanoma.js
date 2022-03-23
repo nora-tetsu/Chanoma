@@ -515,6 +515,7 @@ function InfoPickup(){
         target.appendChild(div);
     }
     CreateTweetByID();
+    CheckLink();
 }
 
 // 件数を指定してランダムピックアップ
