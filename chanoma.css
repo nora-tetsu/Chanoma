@@ -207,6 +207,10 @@ header {
           margin-block-start: 0;
 }
 
+.body-text iframe {
+  margin: 10px auto;
+}
+
 .body-tag {
   width: 100%;
   margin-bottom: 4px;
