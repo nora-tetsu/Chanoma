@@ -82,41 +82,45 @@ function BuildPinnedList(){
 
 // 分類タグ欄を生成（左列下部）
 function BuildTagList(){
-    const list = document.getElementById("tags")
+    const list = document.getElementById("tags");
+    list.querySelector("ul.tag-parent").innerHTML = '<li><i class="node-icon fas fa-caret-right"></i><span class="tag-title" name="undefined">(undefined)</span>\n    <ul class="hiddennode"></ul>\n</li>'
     const sorted = SortCreatedOrder();
     for(let i = 0; i < sorted.length; i++){
         let inputtag = sorted[i].tag;
         if(inputtag=="") continue;
-        let tags = inputtag.split("/");
-        if(!list.querySelector('[name="'+inputtag+'"]')){
-            let thistag,parenttag,targetul;
-            for(let j = 0; j < tags.length; j++){
-                // まとめてスキップ処理する
-                if(j==0){
-                    thistag = tags[0];
-                    targetul = list.querySelector("ul.tag-parent");
-                }else{
-                    thistag = thistag + "/" + tags[j];
-                    let parentspan = list.querySelector('[name="'+parenttag+'"]');
-                    let parentli = parentspan.parentNode;
-                    targetul = parentli.querySelector("ul");
+        let splittag = inputtag.split(",");
+        for(let j = 0; j < splittag.length; j++){
+            let tags = splittag[j].split("/");
+            if(!list.querySelector('[name="'+splittag[j]+'"]')){
+                let thistag,parenttag,targetul;
+                for(let j = 0; j < tags.length; j++){
+                    // まとめてスキップ処理する
+                    if(j==0){
+                        thistag = tags[0];
+                        targetul = list.querySelector("ul.tag-parent");
+                    }else{
+                        thistag = thistag + "/" + tags[j];
+                        let parentspan = list.querySelector('[name="'+parenttag+'"]');
+                        let parentli = parentspan.parentNode;
+                        targetul = parentli.querySelector("ul");
+                    }
+                    parenttag = thistag;
+                    if(list.querySelector('[name="'+thistag+'"]')) continue;
+                    
+                    let item = document.createElement("li");
+                    let nodeicon = document.createElement("i");
+                    nodeicon.className = "node-icon fas fa-caret-right";
+                    let span = document.createElement("span");
+                    span.className = "tag-title";
+                    span.innerText = tags[j];
+                    span.setAttribute("name",thistag);
+                    item.appendChild(nodeicon);
+                    item.appendChild(span);
+                    let ul = document.createElement("ul");
+                    ul.className = "hiddennode";
+                    item.appendChild(ul);
+                    targetul.appendChild(item);               
                 }
-                parenttag = thistag;
-                if(list.querySelector('[name="'+thistag+'"]')) continue;
-                
-                let item = document.createElement("li");
-                let nodeicon = document.createElement("i");
-                nodeicon.className = "node-icon fas fa-caret-right";
-                let span = document.createElement("span");
-                span.className = "tag-title";
-                span.innerText = tags[j];
-                span.setAttribute("name",thistag);
-                item.appendChild(nodeicon);
-                item.appendChild(span);
-                let ul = document.createElement("ul");
-                ul.className = "hiddennode"
-                item.appendChild(ul);
-                targetul.appendChild(item);               
             }
         }
     }
@@ -124,18 +128,21 @@ function BuildTagList(){
     // フォルダが先に生成されるようにtag-note構築は分けて処理
     for(let i = 0; i < sorted.length; i++){
         let inputtag = sorted[i].tag;
-        let li = document.createElement("li");
-        let tagNote = document.createElement("span");
-        tagNote.className = "tag-note";
-        tagNote.innerText = sorted[i].title;
-        li.appendChild(tagNote);
-        let target;
-        if(inputtag==""){
-            target = list.querySelector('[name="undefined"]').parentNode;
-        }else{
-            target = list.querySelector('[name="'+inputtag+'"]').parentNode;
+        let splittag = inputtag.split(",");
+        for(let j = 0; j < splittag.length; j++){
+            let li = document.createElement("li");
+            let tagNote = document.createElement("span");
+            tagNote.className = "tag-note";
+            tagNote.innerText = sorted[i].title;
+            li.appendChild(tagNote);
+            let target;
+            if(splittag[j]==""){
+                target = list.querySelector('[name="undefined"]').parentNode;
+            }else{
+                target = list.querySelector('[name="'+splittag[j]+'"]').parentNode;
+            }
+            target.querySelector("ul").appendChild(li);
         }
-        target.querySelector("ul").appendChild(li);
     }
     AddEventByClassName("tag-title","click",BuildTagBody);
     AddEventByClassName("tag-note","click",BuildBody);
@@ -358,30 +365,9 @@ function SetBody(title){
     for(let i = 0; i < masterdata.length; i++){
         if(title==masterdata[i].title){
             document.querySelector(".body-text").innerHTML = ProcessText(masterdata[i].body);
-
+            
             // 下部のタグ欄を生成
-            let tagarea = document.querySelector(".body-tag");
-            tagarea.innerHTML = "";
-            let inputtag = masterdata[i].tag;
-            let tags = inputtag.split("/");
-            let t,tagname;
-            for(let j = 0; j < tags.length; j++){
-                let span = document.createElement("span");
-                span.innerText = tags[j];
-                span.className = "tag-title";
-                if(j==0){
-                    tagname = tags[j];
-                }else{
-                    tagname = tagname + "/" + tags[j];
-                }
-                span.setAttribute("name",tagname);
-                if(j==0){
-                    t = "#" + span.outerHTML;
-                }else{
-                    t = t + "/" + span.outerHTML;
-                }
-            }
-            tagarea.innerHTML = t;
+            document.querySelector(".body-tag").innerHTML = ProcessBodyTag(masterdata[i]);
         }
     }
     CreateTweetByID();
@@ -391,6 +377,35 @@ function SetBody(title){
     BuildImplyforwardLinks();
     AddEventByClassName("tag-title","click",BuildTagBody);
     CheckLink();
+}
+function ProcessBodyTag(data){ // HTMLを返す
+    const inputtag = data.tag;
+    const splittag = inputtag.split(",");
+    let result = "";
+    for(let i = 0; i < splittag.length; i++){
+        let tags = splittag[i].split("/");
+        let t,tagname;
+        let outerspan = document.createElement("span");
+        for(let j = 0; j < tags.length; j++){
+            let span = document.createElement("span");
+            span.innerText = tags[j];
+            span.className = "tag-title";
+            if(j==0){
+                tagname = tags[j];
+            }else{
+                tagname = tagname + "/" + tags[j];
+            }
+            span.setAttribute("name",tagname);
+            if(j==0){
+                t = "#" + span.outerHTML;
+            }else{
+                t = t + "/" + span.outerHTML;
+            }
+        }
+        outerspan.innerHTML = t
+        result = result + outerspan.outerHTML;
+    }
+    return result;
 }
 function BuildTagBody(){ // タグのonclickで発動
     ClearBody();
@@ -616,6 +631,7 @@ function BuildKeywords(){
         span.setAttribute("name",sorted[i]);
         span.addEventListener("click",BuildBody);
         let numspan = document.createElement("span");
+        numspan.className = "times"
         numspan.innerText = " ("+num+"/"+implynum+")";
         li.appendChild(span);
         li.appendChild(numspan);

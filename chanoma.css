@@ -211,9 +211,18 @@ header {
   margin: 10px auto;
 }
 
+.body-text .times {
+  font-size: 12px;
+  vertical-align: 2px;
+}
+
 .body-tag {
   width: 100%;
   margin-bottom: 4px;
+}
+
+.body-tag > span {
+  margin-right: 10px;
 }
 
 .page-link, .link-item {
