@@ -2,6 +2,7 @@ var pinList = [
     {"title":"お知らせ一覧","function":InfoPickup},
     {"title":"作成日時順の最新ノート","function":CreatedOrder},
     {"title":"更新日時順の最新ノート","function":EditedOrder},
+    {"title":"リンク済みキーワード一覧","function":BuildKeywords},
     //{"title":"ランダムピックアップ 5件","function":RandomPickup5},
 ]
 
@@ -571,5 +572,53 @@ function ToggleExpand(){
             this.classList.remove("fa-caret-down")
             this.classList.add("fa-caret-right")
         }   
+    }
+}
+
+function BuildKeywords(){
+    ClearBody();
+    // まず全データ中の[[hoge]]を探して配列にする
+    let allArray = new Array();
+    let wordArray = new Array();
+    for(let i = 0; i < masterdata.length; i++){
+        let match_link = masterdata[i].body.match(/\[\[[^\]\]]*\]\]/g);
+        if(match_link!=null){
+            for (let i = 0; i < match_link.length; i++) {
+                let link = match_link[i].replace(/\[\[/,'').replace(/\]\]/,'');
+                allArray.push(link);
+                if(!wordArray.includes(link)) wordArray.push(link);
+            }
+        }
+    }
+    let namesorted = wordArray.slice().sort(function(a, b) {
+        return (a.length > b.length) ? 1 : -1;  //オブジェクトの降順ソート
+    })
+    let sorted = namesorted.slice().sort(function(a, b) {
+        return (allArray.filter(word => word === a).length > allArray.filter(word => word === b).length) ? -1 : 1;  //オブジェクトの降順ソート
+    })
+    document.querySelector(".body-title").innerText = "リンクが生成されているキーワード（リンク数/言及数）（"+sorted.length+"件）";
+    const target = document.querySelector(".body-text");
+    let ul = document.createElement("ul");
+    target.appendChild(ul);
+    for(let i = 0; i < sorted.length; i++){
+        let num = allArray.filter(word => word === sorted[i]).length;
+        let implynum = masterdata.filter(e => e.body.includes(sorted[i])).length;
+        let li = document.createElement("li");
+        // li.className = "date-note";
+        let span = document.createElement("span");
+        span.innerText = sorted[i];
+        span.className = "date-note page-link emptylink";
+        for(let j = 0; j < masterdata.length; j++){
+            if(sorted[i]==masterdata[j].title){
+                span.classList.remove("emptylink");
+            }
+        }
+        span.setAttribute("name",sorted[i]);
+        span.addEventListener("click",BuildBody);
+        let numspan = document.createElement("span");
+        numspan.innerText = " ("+num+"/"+implynum+")";
+        li.appendChild(span);
+        li.appendChild(numspan);
+        ul.appendChild(li);
     }
 }
