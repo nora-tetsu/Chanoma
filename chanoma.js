@@ -609,7 +609,7 @@ function BuildKeywords(){
         return (a.length > b.length) ? 1 : -1;  //オブジェクトの降順ソート
     })
     let sorted = namesorted.slice().sort(function(a, b) {
-        return (allArray.filter(word => word === a).length > allArray.filter(word => word === b).length) ? -1 : 1;  //オブジェクトの降順ソート
+        return (masterdata.filter(e => e.body.includes(a)).length > masterdata.filter(e => e.body.includes(b)).length) ? -1 : 1;  //オブジェクトの降順ソート
     })
     document.querySelector(".body-title").innerText = "リンクが生成されているキーワード（リンク数/言及数）（"+sorted.length+"件）";
     const target = document.querySelector(".body-text");
