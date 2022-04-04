@@ -54,6 +54,7 @@ body {
   font-family: "UD デジタル 教科書体 NK-R", "Kosugi Maru", 
  "Roboto",Helvetica,Arial,"Hiragino Sans",sans-serif !important;
   padding: 0 var(--margin-side);
+  background-color: #fff;
 }
 
 main {
