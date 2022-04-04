@@ -17,7 +17,13 @@ var masterdata;
 fetch("https://nora-tetsu.github.io/Chanoma/chanomaData.json")
     .then(response => response.text())
     .then(data => {
-        masterdata = JSON.parse(data.replace(/\\n/g,"<br>"));
+        try{
+            masterdata = JSON.parse(data.replace(/\\n/g,"<br>"));
+        }catch(e){
+            console.error('サーバーエラー');
+            document.querySelector(".body-title").innerText = "";
+            document.querySelector(".body-text").innerText = "データに不備があり現在修正中です。\nよろしければ時間を置いてまたお越しください。\n（すみません）";
+        }
         console.log("現在のデータベースの内容を確認");
         console.log(masterdata);
         Starting();
@@ -354,6 +360,8 @@ function ClearBody(){
     document.querySelector(".body-text").innerHTML = "";
     document.querySelector(".body-tag").innerHTML = "";
     document.querySelector(".link-parent").innerHTML = "";
+    const bodyarea = document.getElementById("body");
+    bodyarea.scrollTop = 0;
 }
 function BuildBody(){ // onclickで発動
     const title = this.innerText;
