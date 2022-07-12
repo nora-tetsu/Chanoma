@@ -10,6 +10,8 @@ var exlinkList = [
     {"title":"Noratetsu Lab(Blog)","URL":"https://noratetsu.blogspot.com/","imgsrc":"https://www.blogger.com/img/logo_blogger_40px.png"},
     {"title":"Scrapbox","URL":"https://scrapbox.io/noratetsu/","imgsrc":"https://gyazo.com/5f93e65a3b979ae5333aca4f32600611/max_size/1000"},
     {"title":"Twitter","URL":"https://twitter.com/Foam_Crab","imgsrc":"https://gyazo.com/c6f9ef45d7c4b64fe31909485b8a9222/max_size/1000"},
+    {"title":"Twilog","URL":"https://twilog.org/Foam_Crab/asc","imgsrc":"http://www.google.com/s2/favicons?domain=https://twilog.org/Foam_Crab/asc"},
+    {"title":"Substack","URL":"https://substack.com/profile/97326198--foam_crab","imgsrc":"https://gyazo.com/697681c54bb68010e6e027d724d1dd2d/max_size/1000"},
     {"title":"note","URL":"https://note.com/noratetsu/","imgsrc":"https://gyazo.com/57f5da416fed69ca4f8621766aab12f0/max_size/1000"},
 ]
 
@@ -49,6 +51,7 @@ function AddEventByClassName(classname,type,f){
 // 他のサイトへのリンクを生成（右上の欄）
 function BuildExlinks(){
     const target = document.getElementById("exlinks");
+    target.innerHTML = "";
     for(let i = 0; i < exlinkList.length; i++){
         let item = document.createElement("li");
         let a = document.createElement("a");
@@ -66,6 +69,7 @@ function BuildExlinks(){
 // ピン欄を生成（左列上部）
 function BuildPinnedList(){
     const target = document.querySelector(".pin-parent");
+    target.innerHTML = "";
     // 各ノートのpin判定をチェックして生成
     for(let i = 0; i < masterdata.length; i++){
         if(masterdata[i].pin==true){
