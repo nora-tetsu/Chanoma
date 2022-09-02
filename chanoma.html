@@ -3,36 +3,10 @@
 <meta charset="utf-8">
 <meta content='width=device-width,initial-scale=1.0,user-scalable=yes' name='viewport'/>
 <title>茶の間（確認用）</title>
-<link rel="stylesheet" href="https://nora-tetsu.github.io/Chanoma/chanoma.css"/>
-<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.1/css/all.css"/>
+<link rel="stylesheet" href="chanoma.css"/>
+<link rel ="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-<script>
-    function CreateTweetByID(){
-        const text = document.querySelector(".body-text").innerHTML;
-        let match = text.match(/《https\:\/\/twitter\.com\/.*\/status\/[0-9]*》/g);
-        if(match==null) return;
-        let editedtext = text;
-        for(let i = 0; i < match.length; i++){
-            let tweetId = match[i].replace(/《.*\/status\/([0-9]*)》/,"$1");
-            let tag = '<div class="tweetblock" name="'+tweetId+'"></div>';
-            editedtext = editedtext.replace(match[i],tag);
-            document.querySelector(".body-text").innerHTML = editedtext;
-            let target = document.querySelector('[name="'+tweetId+'"]');
-            // http://westplain.sakuraweb.com/translate/twitter/Documentation/Twitter-for-Websites/JavaScript/Scripting-Factory-Functions.cgi
-            twttr.widgets.createTweet(
-            tweetId,
-            target,
-            {
-                align: 'center',
-                width: '90%'
-            })
-            .then(function (el) {
-                console.log("@ev's Tweet has been displayed.")
-            });
-        }
-    }
-</script>
 </head>
 <body>
     <header>
@@ -44,23 +18,31 @@
         <div id="content">
             <div id="tags">
                 <p class="label">分類タグ</p>
-                <ul class="tag-parent">
+                <ul id="tag-parent">
                     <li><i class="node-icon fas fa-caret-right"></i><span class="tag-title" name="undefined">(undefined)</span>
-                        <ul class="hiddennode"></ul>
+                        <ul class="hidden"></ul>
                     </li>
                 </ul>
             </div>
-            <div id="pins"><p class="label">ピン</p><ul class="pin-parent"></ul></div>
+            <div id="pins">
+                <p class="label">ピン</p>
+                <ul id="pin-parent"></ul>
+            </div>
             <div id="body">
                 <p class="label">つぶやき</p>
-                <div class="body-tag"></div>
-                <p class="body-title">Loading...</p>
-                <div class="body-text"></div>
+                <div id="body-tag"></div>
+                <p id="body-title">Loading...</p>
+                <div id="body-text"></div>
+                <span id="body-created"></span>
+                <span id="body-edited"></span>
             </div>
-            <div id="links"><p class="label">バックリンク/リンク</p><ul class="link-parent"></ul></div>
+            <div id="links">
+                <p class="label">バックリンク/リンク</p>
+                <ul id="link-parent"></ul>
+            </div>
         </div>
     </main>
     <footer></footer>
-    <script src="https://nora-tetsu.github.io/Chanoma/chanoma.js" type="text/javascript"></script>
+    <script src="chanoma.js" type="text/javascript"></script>
 </body>
 </html>

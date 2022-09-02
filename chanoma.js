@@ -1,201 +1,552 @@
-var pinList = [
-    {"title":"お知らせ一覧","function":InfoPickup},
-    {"title":"作成日時順の最新ノート","function":CreatedOrder},
-    {"title":"更新日時順の最新ノート","function":EditedOrder},
-    {"title":"リンク済みキーワード一覧","function":BuildKeywords},
-    //{"title":"ランダムピックアップ 5件","function":RandomPickup5},
-]
-
-var exlinkList = [
-    {"title":"Noratetsu Lab(Blog)","URL":"https://noratetsu.blogspot.com/","imgsrc":"https://www.blogger.com/img/logo_blogger_40px.png"},
-    {"title":"Scrapbox","URL":"https://scrapbox.io/noratetsu/","imgsrc":"https://gyazo.com/5f93e65a3b979ae5333aca4f32600611/max_size/1000"},
-    {"title":"Twitter","URL":"https://twitter.com/Foam_Crab","imgsrc":"https://gyazo.com/c6f9ef45d7c4b64fe31909485b8a9222/max_size/1000"},
-    {"title":"Twilog","URL":"https://twilog.org/Foam_Crab/asc","imgsrc":"http://www.google.com/s2/favicons?domain=https://twilog.org/Foam_Crab/asc"},
-    {"title":"Substack","URL":"https://substack.com/profile/97326198--foam_crab","imgsrc":"https://gyazo.com/697681c54bb68010e6e027d724d1dd2d/max_size/1000"},
-    {"title":"note","URL":"https://note.com/noratetsu/","imgsrc":"https://gyazo.com/57f5da416fed69ca4f8621766aab12f0/max_size/1000"},
-]
-
-var masterdata;
-fetch("https://nora-tetsu.github.io/Chanoma/chanomaData.json")
-    .then(response => response.text())
-    .then(data => {
-        try{
-            masterdata = JSON.parse(data.replace(/\\n/g,"<br>"));
-        }catch(e){
-            console.error('サーバーエラー');
-            document.querySelector(".body-title").innerText = "";
-            document.querySelector(".body-text").innerText = "データに不備があり現在修正中です。\nよろしければ時間を置いてまたお越しください。\n（すみません）";
-        }
-        console.log("現在のデータベースの内容を確認");
-        console.log(masterdata);
-        Starting();
-        console.log("ロードが完了しました。")
-        });
-
-function Starting(){
-    BuildExlinks();
-    BuildPinnedList();
-    BuildTagList();
-    SetBody("About茶の間");
-}
-
-// 以下function
-
-function AddEventByClassName(classname,type,f){
-    let targets = document.getElementsByClassName(classname);
-    for(let i = 0; i < targets.length; i++){
-        targets[i].addEventListener(type,f);
+class LinkLi extends HTMLLIElement {
+    constructor(title,type,option) {
+        super();
+        this.setAttribute('is','link-li');
+        this.setAttribute('name',title);
+        const icon = document.createElement('i');
+        const text = document.createElement("span");
+        text.innerText = title;
+        text.classList.add('title');
+        const ul = document.createElement('ul');
+        this.append(icon,text,ul);        
+        this.setAttribute('data-type',type);
+        if(option) option(this);
     }
-}
-
-// 他のサイトへのリンクを生成（右上の欄）
-function BuildExlinks(){
-    const target = document.getElementById("exlinks");
-    target.innerHTML = "";
-    for(let i = 0; i < exlinkList.length; i++){
-        let item = document.createElement("li");
-        let a = document.createElement("a");
-        a.href = exlinkList[i].URL;
-        a.title = exlinkList[i].title;
-        a.target="_blank";
-        let img = document.createElement("img");
-        img.src = exlinkList[i].imgsrc;
-        target.appendChild(item);
-        item.appendChild(a);
-        a.appendChild(img);
-    }
-}
-
-// ピン欄を生成（左列上部）
-function BuildPinnedList(){
-    const target = document.querySelector(".pin-parent");
-    target.innerHTML = "";
-    // 各ノートのpin判定をチェックして生成
-    for(let i = 0; i < masterdata.length; i++){
-        if(masterdata[i].pin==true){
-            let item = document.createElement("li");
-            item.innerText = masterdata[i].title;
-            item.className = "pinned";
-            item.addEventListener("click",BuildBody);
-            target.appendChild(item);
-        }
-    }
-    // 関数を発動するアイテムを生成
-    for(let i = 0; i < pinList.length; i++){
-        let item = document.createElement("li");
-        item.innerText = pinList[i].title;
-        item.className = "pinned pickup";
-        item.addEventListener("click",pinList[i].function);
-        target.appendChild(item);
-    }
-}
-
-// 分類タグ欄を生成（左列下部）
-function BuildTagList(){
-    const list = document.getElementById("tags");
-    list.querySelector("ul.tag-parent").innerHTML = '<li><i class="node-icon fas fa-caret-right"></i><span class="tag-title" name="undefined">(undefined)</span>\n    <ul class="hiddennode"></ul>\n</li>'
-    const sorted = SortCreatedOrder();
-    for(let i = 0; i < sorted.length; i++){
-        let inputtag = sorted[i].tag;
-        if(inputtag=="") continue;
-        let splittag = inputtag.split(",");
-        for(let j = 0; j < splittag.length; j++){
-            let tags = splittag[j].split("/");
-            if(!list.querySelector('[name="'+splittag[j]+'"]')){
-                let thistag,parenttag,targetul;
-                for(let j = 0; j < tags.length; j++){
-                    // まとめてスキップ処理する
-                    if(j==0){
-                        thistag = tags[0];
-                        targetul = list.querySelector("ul.tag-parent");
-                    }else{
-                        thistag = thistag + "/" + tags[j];
-                        let parentspan = list.querySelector('[name="'+parenttag+'"]');
-                        let parentli = parentspan.parentNode;
-                        targetul = parentli.querySelector("ul");
-                    }
-                    parenttag = thistag;
-                    if(list.querySelector('[name="'+thistag+'"]')) continue;
-                    
-                    let item = document.createElement("li");
-                    let nodeicon = document.createElement("i");
-                    nodeicon.className = "node-icon fas fa-caret-right";
-                    let span = document.createElement("span");
-                    span.className = "tag-title";
-                    span.innerText = tags[j];
-                    span.setAttribute("name",thistag);
-                    item.appendChild(nodeicon);
-                    item.appendChild(span);
-                    let ul = document.createElement("ul");
-                    ul.className = "hiddennode";
-                    item.appendChild(ul);
-                    targetul.appendChild(item);               
-                }
-            }
-        }
+    getTitle(){
+        return this.querySelector('.title').innerText;
     }
     
-    // フォルダが先に生成されるようにtag-note構築は分けて処理
-    for(let i = 0; i < sorted.length; i++){
-        let inputtag = sorted[i].tag;
-        let splittag = inputtag.split(",");
-        for(let j = 0; j < splittag.length; j++){
-            let li = document.createElement("li");
-            let tagNote = document.createElement("span");
-            tagNote.className = "tag-note";
-            tagNote.innerText = sorted[i].title;
-            li.appendChild(tagNote);
-            let target;
-            if(splittag[j]==""){
-                target = list.querySelector('[name="undefined"]').parentNode;
-            }else{
-                target = list.querySelector('[name="'+splittag[j]+'"]').parentNode;
+    //connectedCallback() {}
+    static get observedAttributes() {
+        return ['data-type'];
+    }
+    attributeChangedCallback(name, oldValue, newValue) {
+        if(name=='data-type'){
+            this.querySelector('.title').classList.add(newValue);
+            switch(newValue){
+                case 'pinned':
+                    this.querySelector('i').className = 'fas fa-thumbtack';
+                    break;
+                case 'pickup':
+                    this.querySelector('.title').classList.add('pinned');
+                    this.querySelector('i').className = 'fas fa-magic';
+                    break;
+                default:
+                    this.querySelector('.title').classList.add('link-item');
+                    if(!DATA.find(obj=>obj.title==this.getTitle())) this.querySelector('.title').classList.add("emptylink");
+                    this.querySelector('.title').addEventListener('click',()=>body.setData(this.getTitle()));
             }
-            target.querySelector("ul").appendChild(li);
+            switch(newValue){
+                case 'forwardlink':
+                case 'implyforwardlink':
+                    this.querySelector('i').className = 'fas fa-angle-double-right';
+                    break;
+                case 'twohoplink':
+                    this.querySelector('i').className = 'fas fa-angle-right';
+                    break;
+                case 'backlink':
+                case 'implybacklink':
+                    this.querySelector('i').className = 'fas fa-angle-double-left';
+                    break;
+                default:
+            }
         }
     }
-    AddEventByClassName("tag-title","click",BuildTagBody);
-    AddEventByClassName("tag-note","click",BuildBody);
-    AddEventByClassName("node-icon","click",ToggleExpand);
+}
+customElements.define('link-li', LinkLi, {extends: 'li'});
 
-    // 件数を表示
-    const alltags = document.getElementsByClassName("tag-title");
-    for(let i = 0; i < alltags.length; i++){
-        let li = alltags[i].parentNode
-        let tagnum = li.querySelectorAll(".tag-note");
-        let target = li.querySelector("span");
-        target.innerText = target.innerText + " (" + tagnum.length + ")";
+const LIST = {
+    pin: [
+        {"title":"お知らせ一覧","function":()=>pickup.info()},
+        {"title":"作成日時順の最新ノート","function":()=>pickup.dateOrder("created")},
+        {"title":"更新日時順の最新ノート","function":()=>pickup.dateOrder("edited")},
+        {"title":"リンク済みキーワード一覧","function":()=>pickup.keywords()},
+        //{"title":"ランダムピックアップ 5件","function":()=>pickup.random(5)},
+    ],
+    exlink: [
+        {"title":"Noratetsu Lab(Blog)","URL":"https://noratetsu.blogspot.com/","imgsrc":"https://www.blogger.com/img/logo_blogger_40px.png"},
+        {"title":"Scrapbox","URL":"https://scrapbox.io/noratetsu/","imgsrc":"https://gyazo.com/5f93e65a3b979ae5333aca4f32600611/max_size/1000"},
+        {"title":"Twitter","URL":"https://twitter.com/Foam_Crab","imgsrc":"https://gyazo.com/c6f9ef45d7c4b64fe31909485b8a9222/max_size/1000"},
+        {"title":"Twilog","URL":"https://twilog.org/Foam_Crab/asc","imgsrc":"http://www.google.com/s2/favicons?domain=https://twilog.org/Foam_Crab/asc"},
+        {"title":"Substack","URL":"https://substack.com/profile/97326198--foam_crab","imgsrc":"https://gyazo.com/697681c54bb68010e6e027d724d1dd2d/max_size/1000"},
+        {"title":"note","URL":"https://note.com/noratetsu/","imgsrc":"https://gyazo.com/57f5da416fed69ca4f8621766aab12f0/max_size/1000"},
+    ],
+}
+
+const database = {
+    data:[],
+    sortCreated(){
+        // 作成日時降順に並び替えたオブジェクトを返す
+        const result = DATA.slice().sort(function(a, b) {
+            return (a.created > b.created) ? -1 : 1;  //オブジェクトの降順ソート
+        })
+        return result;
+    },
+    sortEdited(){
+        // 更新日時降順に並び替えたオブジェクトを返す
+        const result = DATA.slice().sort(function(a, b) {
+            return (a.edited > b.edited) ? -1 : 1;  //オブジェクトの降順ソート
+        })
+        return result;
+    },
+    getKeywordList(){
+        const arr = [];
+        DATA.forEach(data=>{
+            const match = data.body.match(/\[\[[^\]\]]*\]\]/g);
+            if(match){
+                match.forEach(value=>{
+                    const link = value.replace(/\[\[/,'').replace(/\]\]/,'');
+                    const find = arr.find(obj=>obj.keyword==link)
+                    if(find){
+                        find.count++;
+                    }else{
+                        arr.push({keyword:link,count:1});
+                    }
+                })
+            }
+        })
+        return arr;
     }
+}
+let DATA = database.data;
+
+const render = {
+    exlinks(){
+        // 他のサイトへのリンクを生成（右上の欄）
+        const parent = document.getElementById("exlinks");
+        parent.innerHTML = "";
+        LIST.exlink.forEach(data=>{
+            const item = document.createElement("li");
+            parent.append(item);
+            const a = document.createElement("a");
+            a.href = data.URL;
+            a.title = data.title;
+            a.parent="_blank";
+            item.append(a);
+            const img = document.createElement("img");
+            img.src = data.imgsrc;
+            a.append(img);
+        })
+    },
+    pinned(){
+        // ピン欄を生成（左列上部）
+        const parent = document.getElementById('pin-parent');
+        parent.innerHTML = "";
+        // 各ノートのpin判定をチェックして生成
+        const filter = DATA.filter(obj=>obj.pin);
+        filter.forEach(data=>{
+            const item = new LinkLi(data.title,'pinned');
+            item.addEventListener("click",function(){body.setData(this.innerText)});
+            parent.append(item);
+        })
+        // 関数を発動するアイテムを生成
+        LIST.pin.forEach(data=>{
+            const item = new LinkLi(data.title,'pickup');
+            item.addEventListener("click",data.function);
+            parent.append(item);
+        })
+    },
+    tags(){
+        // 分類タグ欄を生成（左列下部）
+        const list = document.getElementById("tags");
+        document.getElementById('tag-parent').innerHTML = '';
+        document.getElementById('tag-parent').append(createItem('(undefined)','undefined'));
+        const sorted = database.sortCreated();
+        const done = [];
+        sorted.forEach(data=>{
+            if(data.tag=='') return;
+            const split = data.tag.split(',');
+            split.forEach(tag=>{
+                const tagtree = tag.split('/');
+                let tagname = '', parentUl;
+                tagtree.forEach(value=>{
+                    if(tagname==''){
+                        tagname = value;
+                        parentUl = document.getElementById('tag-parent');
+                    }else{
+                        parentUl = list.querySelector(`li[name="${tagname}"] > ul`);
+                        tagname += `/${value}`;
+                    }
+                    if(done.includes(tagname)) return;
+                    
+                    const item = createItem(value,tagname);
+                    parentUl.append(item);
+                    done.push(tagname);
+                })
+            })
+        })
+        function createItem(title,tagname){
+            const item = document.createElement("li");
+            item.setAttribute("name",tagname);
+            const nodeicon = document.createElement("i");
+            nodeicon.className = "node-icon fas fa-caret-right";
+            nodeicon.addEventListener("click",toggleExpand);
+            const span = document.createElement("span");
+            span.className = "tag-title";
+            span.setAttribute('data-tag-full',tagname);
+            span.setAttribute('data-tag',title);
+            span.innerText = title;
+            span.addEventListener('click',function(){body.setTagdata(this)})
+            item.append(nodeicon,span);
+            const ul = document.createElement("ul");
+            ul.className = "hidden";
+            item.append(ul);
+            return item;
+        }
+        
+        // フォルダが先に生成されるようにtag-note構築は分けて処理
+        sorted.forEach(data=>{
+            const split = data.tag.split(',');
+            split.forEach(tag=>{
+                const item = document.createElement("li");
+                const icon = document.createElement('i');
+                icon.className = 'fas fa-angle-right';
+                const note = document.createElement("span");
+                note.className = "tag-note";
+                note.innerText = data.title;
+                note.addEventListener("click",function(){body.setData(this.innerText)})
+                item.append(icon,note);
+                const parent = tag ? list.querySelector(`li[name="${tag}"]`) : list.querySelector('[name="undefined"]');
+                parent.querySelector("ul").append(item);
+            })
+        })
+
+        // 件数を表示
+        const alltags = document.querySelectorAll("span.tag-title");
+        alltags.forEach(elm=>{
+            const parent = elm.parentNode; // li
+            elm.innerText += `（${parent.querySelectorAll(".tag-note").length}）`;
+        })
+    },
+}
+
+const body = {
+    clear(){
+        document.getElementById('body-title').innerText = "";
+        document.getElementById('body-text').innerHTML = "";
+        document.getElementById('body-tag').innerHTML = "";
+        document.getElementById('body-created').innerHTML = "";
+        document.getElementById('body-edited').innerHTML = "";
+        document.getElementById('link-parent').innerHTML = "";
+        const bodyarea = document.getElementById("body");
+        bodyarea.scrollTop = 0;
+    },
+    setData(title){
+        this.clear();
+        document.getElementById('body-title').innerText = title;
+        const find = DATA.find(obj=>obj.title==title);
+        if(find){
+            document.getElementById('body-text').innerHTML = processText(find.body);
+            document.getElementById('body-created').innerText = `作成日時： ${find.created}`;
+            document.getElementById('body-edited').innerText = `更新日時： ${find.edited}`;
+            this.renderTags(find);
+            body.renderTweetByID();
+            body.reflectLinkEvent();
+        }
+        body.renderLinks();
+    },
+    setTagdata(tagnode){
+        // タグ一覧の内容をbody-textに表示する
+        body.clear();
+        document.getElementById('body-title').innerText = "# " + tagnode.getAttribute('data-tag');
+        const thisname = tagnode.getAttribute('data-tag-full');
+        const clone = document.querySelector(`div#tags [name="${thisname}"] ul`).cloneNode(true);
+        clone.classList.remove("hidden");
+        clone.querySelectorAll("ul").forEach(elm=>{
+            elm.classList.remove("hidden");
+            const li = elm.parentNode;
+            const nodeicon = li.querySelector(".node-icon");
+            nodeicon.classList.remove("fa-caret-right");
+            nodeicon.classList.add("fa-caret-down");
+        });
+        document.getElementById('body-text').append(clone);
+        document.getElementById('link-parent').innerHTML = "";
+        
+        const tagarea = document.getElementById('body-tag');
+        const parenttags = thisname.split("/");
+        let t;
+        if(parenttags.length>1){
+            for(let i = 0; i < parenttags.length-1; i++){
+                const span = document.createElement("span");
+                span.innerText = parenttags[i];
+                span.setAttribute('data-tag',parenttags[i]);
+                span.className = "tag-title";
+                tagname = i==0 ? parenttags[i] : tagname + "/" + parenttags[i];
+                span.setAttribute('data-tag-full',tagname);
+                span.addEventListener("click",function(){body.setTagdata(this)});
+                const hashtag = document.createTextNode('#');
+                const slash = document.createTextNode('/');
+                i==0 ? tagarea.append(hashtag,span) : tagarea.append(slash,span);
+            }
+        }
+        document.querySelectorAll('#body .tag-title').forEach(elm=>{
+            elm.addEventListener("click",function(){body.setTagdata(this)});
+        });
+        document.querySelectorAll('#body .tag-note').forEach(elm=>{
+            elm.addEventListener("click",function(){body.setData(this.innerText)});
+        });
+        document.querySelectorAll('#body .node-icon').forEach(elm=>{
+            elm.addEventListener("click",toggleExpand);
+        });
+    },
+    renderTags(data){
+        const split = data.tag.split(',');
+        split.forEach(tag=>{
+            const parent = document.createElement("span");
+            const tagtree = tag.split('/');
+            let tagname = '';
+            tagtree.forEach(value=>{
+                tagname=='' ? tagname = value : tagname = `${tagname}/${value}`;
+                const span = document.createElement("span");
+                span.setAttribute('data-tag-full',tagname);
+                span.setAttribute('data-tag',value);
+                span.innerText = value;
+                span.classList.add('tag-title');
+                span.addEventListener('click',function(){body.setTagdata(this)})
+                const hashtag = document.createTextNode('#');
+                const slash = document.createTextNode('/');
+                if(!parent.innerHTML){
+                    parent.append(hashtag,span);
+                }else{
+                    parent.append(slash,span);
+                }
+            })
+            document.getElementById('body-tag').append(parent);
+        })
+    },
+    renderLinks(){
+        const parent = document.getElementById('link-parent');
+        const pageLink = document.querySelectorAll('span.page-link');
+        const title = document.getElementById('body-title').innerText;
+        const done = []; // 既にリンク欄に出力したかを判定
+        done.push(title);
+        pageLink.forEach(elm=>{
+            const forward = new LinkLi(elm.innerText,'forwardlink');
+            forward.querySelector('span.link-item').title = 'このノートからリンクしているノート';
+            parent.append(forward);
+            done.push(elm.innerText);
+
+        })
+        pageLink.forEach(elm=>{
+            // フォワードリンクを一通り構築した後に処理したいのでforEachを2周する
+            const filterHop = DATA.filter(obj=>obj.body.includes(`[[${elm.innerText}]]`));
+            filterHop.forEach(data=>{
+                if(done.includes(data.title)) return;
+                const hop = new LinkLi(data.title,'twohoplink');
+                hop.querySelector('span.link-item').title = 'リンク先から更にリンクしているノート';
+                parent.querySelector(`li[name="${elm.innerText}"] ul`).append(hop);
+                done.push(data.title);
+            })
+        })
+        const filterBack = DATA.filter(obj=>obj.body.includes(`[[${title}]]`));
+        filterBack.forEach(data=>{
+            // if(done.includes(data.title)) return;
+            const back = new LinkLi(data.title,'backlink');
+            back.querySelector('span.link-item').title = 'このノートにリンクしているノート';
+            parent.append(back);
+            done.push(data.title);
+        })
+        const filterImplyBack = DATA.filter(obj=>!obj.body.includes(`[[${title}]]`)&&obj.body.includes(title));
+        filterImplyBack.forEach(data=>{
+            if(done.includes(data.title)) return;
+            const implyBack = new LinkLi(data.title,'implybacklink');
+            implyBack.querySelector('span.link-item').title = 'このノートタイトルを文中に含むノート';
+            parent.append(implyBack);
+            done.push(data.title);
+        })
+        
+        const linkList = database.getKeywordList();
+        const bodyText = document.getElementById('body-text').innerText;
+        linkList.forEach(data=>{
+            if(done.includes(data.keyword)) return;
+            if(bodyText.includes(data.keyword)){
+                const implyForward = new LinkLi(data.keyword,'implyforwardlink');
+                implyForward.querySelector('span.link-item').title = 'このノートの文中に含まれているキーワード';
+                parent.append(implyForward);
+            }
+        })
+    },
+    renderTweetByID(){
+        // https://platform.twitter.com/widgets.js が必要
+        const text = document.getElementById('body-text').innerHTML;
+        // https://twitter.com/Foam_Crab/status/1505159525334020098
+        const match = text.match(/《https\:\/\/twitter\.com\/.*\/status\/[0-9]*》/g);
+        if(match==null) return;
+        let editedtext = text;
+        for(let i = 0; i < match.length; i++){
+            const tweetId = match[i].replace(/《.*\/status\/([0-9]*)》/,"$1");
+            const tag = `<div class="tweetblock" name="${tweetId}">${match[i].replace('《','').replace('》','')}</div>`;
+            editedtext = editedtext.replace(match[i],tag);
+            document.getElementById('body-text').innerHTML = editedtext;
+            let target = document.querySelector('[name="'+tweetId+'"]');
+            // http://westplain.sakuraweb.com/translate/twitter/Documentation/Twitter-for-Websites/JavaScript/Scripting-Factory-Functions.cgi
+            twttr.widgets.createTweet(
+            tweetId,
+            target,
+            {
+                align: 'center',
+                width: '90%'
+            })
+            .then(function (el) {
+                target.firstChild.remove();
+                console.log("@ev's Tweet has been displayed.")
+            });
+        }
+    },
+    reflectLinkEvent(){
+        // 本文中のリンクが空リンクかどうかチェック
+        const pageLink = document.querySelectorAll('#body-text .page-link');
+        pageLink.forEach(elm=>{
+            elm.addEventListener("click",function(){body.setData(this.innerText)});
+            if(DATA.find(obj=>obj.title==elm.innerText)) elm.classList.remove("emptylink");
+        })
+
+    }
+}
+
+const pickup = {
+    dateOrder(type){ // 作成日時順/更新日時順で最新を表示
+        body.clear();
+        let sorted;
+        let N = 100; // 最大100件
+        if(type=="created"){
+            sorted = database.sortCreated();
+            if(sorted.length < N) N = sorted.length;
+            document.getElementById('body-title').innerText = "作成日時順の最新ノート（"+N+"件）";
+        }else if(type=="edited"){
+            sorted = database.sortEdited();
+            if(sorted.length < N) N = sorted.length;
+            document.getElementById('body-title').innerText = "更新日時順の最新ノート（"+N+"件）";
+        }
+        for(let i = 0; i < N; i++){
+            const date = sorted[i][type].substr(0,10);
+            let datediv,dateul;
+            if(!document.querySelector('[name="'+date+'"]')){
+                datediv = document.createElement("div");
+                datediv.setAttribute("name",date);
+                const datelabel = document.createElement("p");
+                datelabel.innerText = date;
+                datelabel.className = "datelabel";
+                dateul = document.createElement("ul");
+                document.getElementById('body-text').append(datediv);
+                datediv.append(datelabel,dateul);
+            }else{
+                datediv = document.querySelector('[name="'+date+'"]');
+                dateul = datediv.querySelector("ul");
+            }
+            const item = document.createElement("li");
+            const icon = document.createElement('i');
+            icon.className = 'fas fa-angle-right';
+            const texttitle = document.createElement("span");
+            texttitle.innerText = sorted[i].title;
+            texttitle.className = "date-note";
+            texttitle.addEventListener("click",function(){body.setData(this.innerText)});
+            item.append(icon,texttitle);
+            dateul.append(item);
+            body.reflectLinkEvent();
+        }
+    },
+    info(){
+        // お知らせタグピックアップ
+        body.clear();
+        const target = document.getElementById('body-text');
+        const pickdata = database.sortCreated().filter(obj=>obj.tag.includes("お知らせ"));
+        document.getElementById('body-title').innerText = `お知らせ一覧（${pickdata.length}件）`;
+        pickdata.forEach(data=>{
+            const p = document.createElement("p");
+            p.innerText = data.title;
+            p.className = "note-title";
+            p.addEventListener("click",function(){body.setData(this.innerText)});
+            const div = document.createElement("div");
+            div.innerHTML = processText(data.body);
+            target.append(p,div);
+        })
+        body.renderTweetByID();
+        body.reflectLinkEvent();
+    },
+    random(num){
+        // 件数を指定してランダムピックアップ
+        const pickdata = DATA.filter(obj=>!obj.tag.includes("お知らせ")&&!obj.tag.includes("日記"));
+        const n = num>pickdata.length ? pickdata.length : num;
+        body.clear();
+        document.getElementById('body-title').innerText = `ランダムピックアップ${n}件（埋め込みツイートは表示しません）`;
+        const target = document.getElementById('body-text');
+        let x; // 乱数
+        let xArray = []; // 使った乱数を記録する配列
+        for(let i = 0; i < n; i++){
+            do {
+                x = random(0,pickdata.length-1); // 存在する件数内で乱数生成
+            }while(xArray.includes(x)); // 重複しなくなるまで（既に配列にある場合はやり直し）
+
+            const p = document.createElement("p");
+            p.innerText = pickdata[x].title;
+            p.className = "note-title";
+            p.addEventListener("click",function(){body.setData(this.innerText)});
+            const div = document.createElement("div");
+            div.innerHTML = processText(pickdata[x].body);
+            target.append(p,div);
+
+            xArray.push(x);
+        }
+        //body.renderTweetByID(); 挙動が怪しいのでツイート埋め込みはしない
+    },
+    keywords(){
+        body.clear();
+        const keywordList = database.getKeywordList();
+        keywordList.sort((a,b)=>a.keyword.length - b.keyword.length);
+        keywordList.sort((a,b)=>b.count - a.count);
+
+        document.getElementById('body-title').innerText = `リンクが生成されているキーワード（リンク数/言及数）（${keywordList.length}件）`;
+        const target = document.getElementById('body-text');
+        const parent = document.createElement("ul");
+        target.append(parent);
+        keywordList.forEach(data=>{
+            const item = document.createElement("li");
+            parent.append(item);
+            const icon = document.createElement('i');
+            icon.className = 'fas fa-angle-right';
+            const span = document.createElement("span");
+            span.innerText = data.keyword;
+            span.className = "date-note page-link emptylink";
+            if(DATA.find(obj=>obj.title==data.keyword)) span.classList.remove("emptylink");
+            span.setAttribute("name",data.keyword);
+            span.addEventListener("click",function(){body.setData(this.innerText)});
+            const numspan = document.createElement("span");
+            numspan.className = "times"
+            numspan.innerText = `（${data.count}/${DATA.filter(e => e.body.includes(data.keyword)).length}）`;
+            item.append(icon,span,numspan);
+        })
+    },
 }
 
 // 本文データを加工してHTMLタグを付与
-function ProcessText(txt){
+function processText(txt){
     let editedtxt = txt;
-    let match_link = editedtxt.match(/\[\[[^\]\]]*\]\]/g); // [[hoge]]
+    const match_link = editedtxt.match(/\[\[[^\]\]]*\]\]/g); // [[hoge]]
     if(match_link!=null){
         for (let i = 0; i < match_link.length; i++) {
-            let link = match_link[i].replace(/\[\[/,'<span class="page-link emptylink">').replace(/\]\]/,'</span>');
+            const link = match_link[i].replace(/\[\[/,'<span class="page-link emptylink">').replace(/\]\]/,'</span>');
             editedtxt = editedtxt.replace(match_link[i],link);
         }
     }
-    let match_img = editedtxt.match(/!\[[^\]]*\]\([^\)]*(\)\{[^\}]*\}|\))/g); // ![title](url){style}
+    const match_img = editedtxt.match(/!\[[^\]]*\]\([^\)]*(\)\{[^\}]*\}|\))/g); // ![title](url){style}
     if(match_img!=null){
         for(let i = 0; i < match_img.length; i++){
-            let link = match_img[i].replace(/!\[(.*)\]\((.*)\)/,'<img src="$2" title="$1" style="height:auto;').replace(/\{(.*)\}/,'$1') + '">';
+            const link = match_img[i].replace(/!\[(.*)\]\((.*)\)/,'<img src="$2" title="$1" style="height:auto;').replace(/\{(.*)\}/,'$1') + '">';
             editedtxt = editedtxt.replace(match_img[i],link);
         }
     }
-    let match_url = editedtxt.match(/\[[^\]]*\]\([^\)]*\)/g); // [title](url)
+    const match_url = editedtxt.match(/\[[^\]]*\]\([^\)]*\)/g); // [title](url)
     if(match_url!=null){
         for(let i = 0; i < match_url.length; i++){
-            let link = match_url[i].replace(/\[(.*)\]\((.*)\)/,'<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+            const link = match_url[i].replace(/\[(.*)\]\((.*)\)/,'<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
             editedtxt = editedtxt.replace(match_url[i],link);
         }
     }
-    let match_quote = editedtxt.match(/\[\>[^\]]*\]/g); // [>text]
+    const match_quote = editedtxt.match(/\[\>[^\]]*\]/g); // [>text]
     if(match_quote!=null){
         for(let i = 0; i < match_quote.length; i++){
-            let link = match_quote[i].replace(/\[\>(.*)\]/,'<blockquote>$1</blockquote>');
+            const link = match_quote[i].replace(/\[\>(.*)\]/,'<blockquote>$1</blockquote>');
             editedtxt = editedtxt.replace(match_quote[i],link).replace('</blockquote><br>','</blockquote>');
         }
     }
@@ -203,392 +554,12 @@ function ProcessText(txt){
     return editedtxt;
 }
 
-var linkArray;
-function BuildForwardLinks(){
-    // フォワードリンク構築
-    const allLinks = document.getElementsByClassName("page-link");
-    if(allLinks.length==0) return;
-    const target = document.querySelector(".link-parent");
-    linkArray = new Array(); // 本文中に含まれるリンクの配列を作る
-    for(let i = 0; i < allLinks.length; i++){
-        let pageLink = allLinks[i].innerText
-        if(!linkArray.includes(pageLink)){ // 既に追加されていなければ
-            linkArray.push(pageLink);
-        }
-    }
-    for(let j = 0; j < linkArray.length; j++){
-        let item = document.createElement("li");
-        let span = document.createElement("span");
-        span.innerText = linkArray[j];
-        span.className = "link-item forwardlink emptylink";
-        span.addEventListener("click",BuildBody);
-        target.appendChild(item);
-        item.appendChild(span);
-        let ul = document.createElement("ul");
-        item.appendChild(ul);
-        for(let k = 0; k < masterdata.length; k++){
-            if(linkArray[j]==masterdata[k].title){ // 空リンクでない時
-                span.classList.remove("emptylink");
-            }
-        }
-        Build2hopLinks(ul,linkArray[j]);
-    }
-}
-function Build2hopLinks(ul,title){
-    // 各フォワードリンクに2hopリンク構築
-    const all2hop = document.querySelectorAll(".twohoplink");
-    const allbacklink = document.querySelectorAll(".backlink");
-    let jArray = new Array(); // 既に生成されているリンクの配列を作る
-    jArray.push(document.querySelector(".body-title").innerText);
-    for(let i = 0; i < all2hop.length; i++){
-        jArray.push(all2hop[i].innerText);
-    }
-    for(let i = 0; i < allbacklink.length; i++){
-        jArray.push(allbacklink[i].innerText);
-    }
-    for(let i = 0; i < masterdata.length; i++){
-        if(jArray.includes(masterdata[i].title)) continue; // 既に存在していればスキップ
-        if(linkArray.includes(masterdata[i].title)) continue; // フォワードリンクとして生成されるものはスキップ
-        let match = masterdata[i].body.includes("[["+title+"]]");
-        if(match){
-            let item = document.createElement("li");
-            let span = document.createElement("span");
-            span.innerText = masterdata[i].title;
-            span.className = "link-item twohoplink";
-            span.addEventListener("click",BuildBody);
-            ul.appendChild(item);
-            item.appendChild(span);
-        }
-    }
-}
-function BuildBackLinks(){
-    // バックリンク構築
-    const target = document.querySelector(".link-parent");
-    const notetitle = document.querySelector(".body-title").innerText;
-    for(let i = 0; i < masterdata.length; i++){
-        let match = masterdata[i].body.includes("[["+notetitle+"]]");
-        if(match){
-            let item = document.createElement("li");
-            let span = document.createElement("span");
-            span.innerText = masterdata[i].title;
-            span.className = "link-item backlink";
-            span.addEventListener("click",BuildBody);
-            target.appendChild(item);
-            item.appendChild(span);
-            let ul = document.createElement("ul");
-            item.appendChild(ul);
-        }
-    }
-}
-function BuildImplyBackLinks(){
-    // 非明示的バックリンク構築
-    const target = document.querySelector(".link-parent");
-    const notetitle = document.querySelector(".body-title").innerText;
-    const alllink = target.querySelectorAll(".link-item");
-    let jArray = new Array(); // 既に生成されているリンクの配列を作る
-    jArray.push(notetitle);
-    for(let i = 0; i < alllink.length; i++){
-        jArray.push(alllink[i].innerText);
-    }
-    for(let i = 0; i < masterdata.length; i++){
-        let match = masterdata[i].body.includes(notetitle);
-        if(match){
-            if(jArray.includes(masterdata[i].title)) continue; // 既に生成されていればスキップ
-            let item = document.createElement("li");
-            let span = document.createElement("span");
-            span.innerText = masterdata[i].title;
-            span.className = "link-item implybacklink";
-            span.addEventListener("click",BuildBody);
-            target.appendChild(item);
-            item.appendChild(span);
-            let ul = document.createElement("ul");
-            item.appendChild(ul);
-        }
-    }
-}
-function BuildImplyforwardLinks(){
-    // 非明示的フロントリンク構築
-    const target = document.querySelector(".link-parent");
-    const notetitle = document.querySelector(".body-title").innerText;
-    const alllink = target.querySelectorAll(".link-item");
-    let jArray = new Array(); // 既に生成されているリンクの配列を作る
-    jArray.push(notetitle);
-    for(let i = 0; i < alllink.length; i++){
-        jArray.push(alllink[i].innerText);
-    }
-    // まず全データ中の[[hoge]]を探して配列にする
-    let wordArray = new Array();
-    for(let i = 0; i < masterdata.length; i++){
-        let match_link = masterdata[i].body.match(/\[\[[^\]\]]*\]\]/g);
-        if(match_link!=null){
-            for (let i = 0; i < match_link.length; i++) {
-                let link = match_link[i].replace(/\[\[/,'').replace(/\]\]/,'');
-                if(wordArray.includes(link)) continue; // 既にあればスキップ
-                wordArray.push(link);
-            }
-        }
-    }
-    // 表示している本文中にhogeと一致するワードがあれば、hogeへのリンクを作る
-    const text = document.querySelector(".body-text").innerText
-    for(let i = 0; i < wordArray.length; i++){
-        if(jArray.includes(wordArray[i])) continue;
-        if(text.includes(wordArray[i])){
-            let item = document.createElement("li");
-            let span = document.createElement("span");
-            span.innerText = wordArray[i];
-            span.className = "link-item implyforwardlink";
-            span.addEventListener("click",BuildBody);
-            target.appendChild(item);
-            item.appendChild(span);
-            let ul = document.createElement("ul");
-            item.appendChild(ul);
-        }
-    }
-}
-
-// 本文中のリンクが空リンクかどうかチェック
-function CheckLink(){
-    const allLinks = document.getElementsByClassName("page-link");
-    for(let i = 0; i < allLinks.length; i++){
-        allLinks[i].addEventListener("click",BuildBody);
-        for(let j = 0; j < masterdata.length; j++){
-            if(allLinks[i].innerText==masterdata[j].title){
-                allLinks[i].classList.remove("emptylink");
-            }
-        }
-    }
-}
-
-function ClearBody(){
-    document.querySelector(".body-title").innerText = "";
-    document.querySelector(".body-text").innerHTML = "";
-    document.querySelector(".body-tag").innerHTML = "";
-    document.querySelector(".link-parent").innerHTML = "";
-    const bodyarea = document.getElementById("body");
-    bodyarea.scrollTop = 0;
-}
-function BuildBody(){ // onclickで発動
-    const title = this.innerText;
-    SetBody(title);
-}
-function SetBody(title){
-    ClearBody();
-    document.querySelector(".body-title").innerText = title;
-    for(let i = 0; i < masterdata.length; i++){
-        if(title==masterdata[i].title){
-            document.querySelector(".body-text").innerHTML = ProcessText(masterdata[i].body);
-            
-            // 下部のタグ欄を生成
-            document.querySelector(".body-tag").innerHTML = ProcessBodyTag(masterdata[i]);
-        }
-    }
-    CreateTweetByID();
-    BuildBackLinks();
-    BuildForwardLinks();
-    BuildImplyBackLinks();
-    BuildImplyforwardLinks();
-    AddEventByClassName("tag-title","click",BuildTagBody);
-    CheckLink();
-}
-function ProcessBodyTag(data){ // HTMLを返す
-    const inputtag = data.tag;
-    const splittag = inputtag.split(",");
-    let result = "";
-    for(let i = 0; i < splittag.length; i++){
-        let tags = splittag[i].split("/");
-        let t,tagname;
-        let outerspan = document.createElement("span");
-        for(let j = 0; j < tags.length; j++){
-            let span = document.createElement("span");
-            span.innerText = tags[j];
-            span.className = "tag-title";
-            if(j==0){
-                tagname = tags[j];
-            }else{
-                tagname = tagname + "/" + tags[j];
-            }
-            span.setAttribute("name",tagname);
-            if(j==0){
-                t = "#" + span.outerHTML;
-            }else{
-                t = t + "/" + span.outerHTML;
-            }
-        }
-        outerspan.innerHTML = t
-        result = result + outerspan.outerHTML;
-    }
-    return result;
-}
-function BuildTagBody(){ // タグのonclickで発動
-    ClearBody();
-    const title = "# " + this.innerText;
-    const thisname = this.getAttribute("name");
-    const listli = document.querySelector('div#tags [name="'+thisname+'"]').parentNode;
-    const listul = listli.querySelector("ul");
-    let clone = listul.cloneNode(true);
-    clone.classList.remove("hiddennode");
-    let uls = clone.querySelectorAll("ul");
-    for(let i = 0; i < uls.length; i++){
-        uls[i].classList.remove("hiddennode");
-        let li = uls[i].parentNode;
-        let nodeicon = li.querySelector(".node-icon")
-        nodeicon.classList.remove("fa-caret-right")
-        nodeicon.classList.add("fa-caret-down")
-    }
-    document.querySelector(".body-text").appendChild(clone);
-    document.querySelector(".body-title").innerText = title;
-    document.querySelector(".link-parent").innerHTML = "";
-    
-    let tagarea = document.querySelector(".body-tag");
-    let parenttags = this.getAttribute("name").split("/");
-    let t;
-    if(parenttags.length>1){
-        for(let j = 0; j < parenttags.length-1; j++){
-            let span = document.createElement("span");
-            span.innerText = parenttags[j];
-            span.className = "tag-title";
-            if(j==0){
-                tagname = parenttags[j];
-            }else{
-                tagname = tagname + "/" + parenttags[j];
-            }
-            span.setAttribute("name",tagname);
-            if(j==0){
-                t = "#" + span.outerHTML;
-            }else{
-                t = t + "/" + span.outerHTML;
-            }
-        }
-        tagarea.innerHTML = t;
-    }
-    AddEventByClassName("tag-title","click",BuildTagBody);
-    AddEventByClassName("tag-note","click",BuildBody);
-    AddEventByClassName("node-icon","click",ToggleExpand);
-}
-
-// 作成日時/更新日時でピックアップ
-function SortCreatedOrder(){ // 作成日時降順に並び替えたオブジェクトを返す
-    let result = masterdata.slice().sort(function(a, b) {
-        return (a.created > b.created) ? -1 : 1;  //オブジェクトの降順ソート
-      })
-    return result;
-}
-function SortEditedOrder(){ // 更新日時降順に並び替えたオブジェクトを返す
-    let result = masterdata.slice().sort(function(a, b) {
-        return (a.edited > b.edited) ? -1 : 1;  //オブジェクトの降順ソート
-      })
-    return result;
-}
-function BuildDateOrder(type){
-    ClearBody();
-    let sorted;
-    let N = 100; // 最大100件
-    if(type=="created"){
-        sorted = SortCreatedOrder();
-        if(sorted.length < N) N = sorted.length;
-        document.querySelector(".body-title").innerText = "作成日時順の最新ノート（"+N+"件）";
-    }else if(type=="edited"){
-        sorted = SortEditedOrder();
-        if(sorted.length < N) N = sorted.length;
-        document.querySelector(".body-title").innerText = "更新日時順の最新ノート（"+N+"件）";
-    }
-    for(let i = 0; i < N; i++){
-        let date = sorted[i][type].substr(0,10);
-        let datediv,dateul;
-        if(!document.querySelector('[name="'+date+'"]')){
-            datediv = document.createElement("div");
-            datediv.setAttribute("name",date);
-            let datelabel = document.createElement("p");
-            datelabel.innerText = date;
-            datelabel.className = "datelabel";
-            dateul = document.createElement("ul");
-            document.querySelector(".body-text").appendChild(datediv);
-            datediv.appendChild(datelabel);
-            datediv.appendChild(dateul);
-        }else{
-            datediv = document.querySelector('[name="'+date+'"]');
-            dateul = datediv.querySelector("ul");
-        }
-        let texttitle = document.createElement("li");
-        texttitle.innerText = sorted[i].title;
-        texttitle.className = "date-note";
-        dateul.appendChild(texttitle);
-        CheckLink();
-    }
-    AddEventByClassName("date-note","click",BuildBody);
-}
-function CreatedOrder(){
-    BuildDateOrder("created");
-}
-function EditedOrder(){
-    BuildDateOrder("edited");
-}
-
-// お知らせタグピックアップ
-function InfoPickup(){
-    ClearBody();
-    const target = document.querySelector(".body-text");
-    let sorted = SortCreatedOrder();
-    let pickdata = new Array();
-    pickdata = sorted.filter(e => {
-        if(e.tag.includes("お知らせ")) return e;
-    });
-    document.querySelector(".body-title").innerText = "お知らせ一覧（"+pickdata.length+"件）";
-    for(let i = 0; i < pickdata.length; i++){
-        let p = document.createElement("p");
-        p.innerText = pickdata[i].title;
-        p.className = "note-title";
-        p.addEventListener("click",BuildBody);
-        let div = document.createElement("div");
-        div.innerHTML = ProcessText(pickdata[i].body);
-        target.appendChild(p);
-        target.appendChild(div);
-    }
-    CreateTweetByID();
-    CheckLink();
-}
-
-// 件数を指定してランダムピックアップ
-function RandomPickup(num){
-    let n = num;
-    let pickdata = new Array();
-    pickdata = masterdata.filter(e => {
-        if(!e.tag.includes("お知らせ") && !e.tag.includes("日記")) return e;
-    });
-    if(num>pickdata.length) n = pickdata.length
-    ClearBody();
-    document.querySelector(".body-title").innerText = "ランダムピックアップ " + n + "件（埋め込みツイートは表示しません）"
-    const target = document.querySelector(".body-text");
-    let x; // 乱数
-    let xArray = new Array(); // 使った乱数を記録する配列
-    for(let i = 0; i < n; i++){
-        do {
-            x = random(0,pickdata.length-1); // 存在する件数内で乱数生成
-        }while(xArray.includes(x)); // 重複しなくなるまで（既に配列にある場合はやり直し）
-
-        let p = document.createElement("p");
-        p.innerText = pickdata[x].title;
-        p.className = "note-title";
-        p.addEventListener("click",BuildBody);
-        let div = document.createElement("div");
-        div.innerHTML = ProcessText(pickdata[x].body);
-        target.appendChild(p);
-        target.appendChild(div);
-
-        xArray.push(x);
-    }
-    AddEventByClassName("node-title","click",BuildBody);
-}
-function RandomPickup5(){
-    RandomPickup(5)
-}
 
 // タグ一覧の子項目開閉
-function ToggleExpand(){
-    let parentli = this.parentNode;
-    let targetul = parentli.querySelector("ul");
-    let tag;
-    tag = "hiddennode";
+function toggleExpand(){
+    const parentli = this.parentNode;
+    const targetul = parentli.querySelector("ul");
+    const tag = "hidden";
     if(targetul.firstChild){ // 子項目があれば
         if(targetul.classList.contains(tag)){
             targetul.classList.remove(tag)
@@ -602,51 +573,31 @@ function ToggleExpand(){
     }
 }
 
-function BuildKeywords(){
-    ClearBody();
-    // まず全データ中の[[hoge]]を探して配列にする
-    let allArray = new Array();
-    let wordArray = new Array();
-    for(let i = 0; i < masterdata.length; i++){
-        let match_link = masterdata[i].body.match(/\[\[[^\]\]]*\]\]/g);
-        if(match_link!=null){
-            for (let i = 0; i < match_link.length; i++) {
-                let link = match_link[i].replace(/\[\[/,'').replace(/\]\]/,'');
-                allArray.push(link);
-                if(!wordArray.includes(link)) wordArray.push(link);
+
+// 実行
+FetchData("https://nora-tetsu.github.io/Chanoma/chanomaData.json");
+
+function FetchData(json){
+    fetch(json)
+        .then(response => response.text())
+        .then(data => {
+            try{
+                database.data = JSON.parse(data.replace(/\\n/g,"<br>"));
+            }catch(e){
+                console.error('サーバーエラー');
+                document.getElementById('body-title').innerText = "";
+                document.getElementById('body-text').innerText = "データに不備があり現在修正中です。\nよろしければ時間を置いてまたお越しください。\n（すみません）";
             }
-        }
-    }
-    let namesorted = wordArray.slice().sort(function(a, b) {
-        return (a.length > b.length) ? 1 : -1;  //オブジェクトの降順ソート
-    })
-    let sorted = namesorted.slice().sort(function(a, b) {
-        return (masterdata.filter(e => e.body.includes(a)).length > masterdata.filter(e => e.body.includes(b)).length) ? -1 : 1;  //オブジェクトの降順ソート
-    })
-    document.querySelector(".body-title").innerText = "リンクが生成されているキーワード（リンク数/言及数）（"+sorted.length+"件）";
-    const target = document.querySelector(".body-text");
-    let ul = document.createElement("ul");
-    target.appendChild(ul);
-    for(let i = 0; i < sorted.length; i++){
-        let num = allArray.filter(word => word === sorted[i]).length;
-        let implynum = masterdata.filter(e => e.body.includes(sorted[i])).length;
-        let li = document.createElement("li");
-        // li.className = "date-note";
-        let span = document.createElement("span");
-        span.innerText = sorted[i];
-        span.className = "date-note page-link emptylink";
-        for(let j = 0; j < masterdata.length; j++){
-            if(sorted[i]==masterdata[j].title){
-                span.classList.remove("emptylink");
-            }
-        }
-        span.setAttribute("name",sorted[i]);
-        span.addEventListener("click",BuildBody);
-        let numspan = document.createElement("span");
-        numspan.className = "times"
-        numspan.innerText = " ("+num+"/"+implynum+")";
-        li.appendChild(span);
-        li.appendChild(numspan);
-        ul.appendChild(li);
-    }
+            DATA = database.data;
+            console.log("現在のデータベースの内容を確認");
+            console.log(DATA);
+        })
+        .then(()=>{
+            render.exlinks();
+            render.pinned();
+            render.tags();
+            body.setData("About茶の間");
+            console.log("ロードが完了しました。")
+        })
 }
+

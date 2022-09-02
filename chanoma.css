@@ -2,7 +2,7 @@
 @import url("https://fonts.googleapis.com/css?family=Kosugi+Maru|M+PLUS+Rounded+1c");
 @import url("https://use.fontawesome.com/releases/v5.15.1/css/all.css");
 ::-webkit-scrollbar {
-  width: 10px;
+  width: 8px;
 }
 ::-webkit-scrollbar-track {
   background: rgba(0, 0, 0, 0.05);
@@ -42,9 +42,30 @@
   }
 }
 
+ul {
+  -webkit-margin-before: 0;
+          margin-block-start: 0;
+  -webkit-margin-after: 0;
+          margin-block-end: 0;
+  -webkit-padding-start: 14px;
+          padding-inline-start: 14px;
+  /* 40px */
+  list-style-type: none;
+  width: auto;
+}
+
+li {
+  position: relative;
+}
+
 body {
   font-family: "UD デジタル 教科書体 NK-R", "Kosugi Maru", "Roboto", Helvetica, Arial, "Hiragino Sans", sans-serif !important;
   padding: 0 var(--margin-side);
+  background-color: #fff;
+}
+
+input, textarea {
+  font-family: "UD デジタル 教科書体 NK-R", "Kosugi Maru", "Roboto", Helvetica, Arial, "Hiragino Sans", sans-serif !important;
 }
 
 main {
@@ -86,11 +107,6 @@ header {
   border: 1px solid #eee;
 }
 
-.label {
-  font-size: 16px;
-  border: 1px solid gray;
-}
-
 #content {
   display: grid;
   gap: 20px;
@@ -127,36 +143,33 @@ header {
   overflow-y: auto;
   padding-right: 6px;
 }
-
 #content > div > p {
   margin-top: 0;
   word-break: break-all;
 }
-
 #content ul {
   margin: 0;
 }
 
 /* つぶやき本体 */
-.body-text {
+#body > span {
+  font-size: 10px;
+  color: #888;
+  margin: 10px;
+  margin-left: 0;
+  display: inline-block;
+}
+#body #body-text {
   font-size: 16px;
   padding-right: 16px;
   line-height: 20px;
   padding-right: 10px;
+  white-space: pre-wrap;
 }
-.body-text > div .tag-note {
+#body #body-text > div .tag-note {
   background-color: #f8f8f8;
 }
-
-.note-title {
-  background-color: #f8f8f8;
-}
-
-.body-title {
-  font-size: 18px;
-}
-
-.body-text blockquote {
+#body #body-text blockquote {
   box-shadow: 2px 2px 2px gray;
   border: 1px solid #ddd;
   -webkit-margin-start: 20px;
@@ -169,130 +182,83 @@ header {
           margin-block-end: 5px;
   padding: 10px;
 }
-
-.body-text h3 {
+#body #body-text h3 {
   -webkit-margin-after: 0;
           margin-block-end: 0;
   -webkit-margin-before: 0;
           margin-block-start: 0;
 }
-
-.body-text iframe {
+#body #body-text iframe {
   margin: 10px auto;
 }
-
-.body-text .times {
+#body #body-text .times {
   font-size: 12px;
   vertical-align: 2px;
 }
-
-.body-tag {
+#body #body-text .note-title {
+  font-size: 18px;
+  background-color: #f0f0f0;
+}
+#body #body-text div + p.note-title {
+  margin-top: 40px;
+}
+#body #body-title {
+  font-size: 18px;
+}
+#body #body-tag {
   width: 100%;
   margin-bottom: 4px;
 }
-.body-tag > span {
+#body #body-tag > span {
   margin-right: 10px;
 }
 
+.label {
+  font-size: 16px;
+  border: 1px solid gray;
+}
+
 .page-link, .link-item {
-  cursor: pointer;
   color: blue;
   margin-right: 2px;
 }
-.page-link:hover, .link-item:hover {
-  background-color: #eee;
-}
-
-.node-icon, .body-text ul li .tag-note::before, .date-note::before, .pinned::before, .twohoplink::before, .backlink::before, .implybacklink::before, .forwardlink::before, .implyforwardlink::before {
-  font-family: "Font Awesome 5 Free" !important;
-  font-weight: 900;
-  font-size: 0.8rem;
-  padding-left: 2px;
-  padding-right: 4px;
-}
-
-.forwardlink::before, .implyforwardlink::before {
-  content: "\f101";
-}
-
-.backlink::before, .implybacklink::before {
-  content: "\f100";
-}
-
-.twohoplink::before {
-  content: "\f105";
-}
 
 .emptylink {
-  color: rgb(240, 111, 72);
+  color: #f06f48;
 }
 
 .implybacklink, .implyforwardlink {
-  color: rgb(35, 184, 72);
+  color: #23b848;
 }
 
 .datelabel {
   background-color: #888;
   color: #fff;
-  margin-top: 6px;
+  margin-top: 10px;
+  margin-bottom: 6px;
 }
 
 .datetext {
   margin: 4px 0 20px;
 }
 
-.pin-parent {
-  font-size: 14px;
-}
-
-.pinned {
-  cursor: pointer;
-}
-.pinned:hover {
-  background-color: #eee;
-}
-.pinned::before {
-  font-size: 0.5rem;
-  content: "\f08d";
-}
-
-.pickup::before {
-  content: "\f0d0";
-}
-
-ul {
-  -webkit-margin-before: 0;
-          margin-block-start: 0;
-  -webkit-margin-after: 0;
-          margin-block-end: 0;
-  -webkit-padding-start: 14px;
-          padding-inline-start: 14px;
-  /* 40px */
-  list-style-type: none;
-  width: auto;
-}
-
-li {
-  position: relative;
-}
-
-.body-text ul li .tag-note::before, .date-note::before {
-  content: "\f105";
-  vertical-align: 1px;
-}
-
-ul.link-parent, ul.pin-parent {
+#link-parent, #pin-parent {
   -webkit-padding-start: 0;
           padding-inline-start: 0;
+}
+#link-parent span, #pin-parent span {
   font-size: 14px;
+}
+#link-parent i, #pin-parent i {
+  font-size: 12px;
 }
 
 .tag-title {
-  color: rgb(11, 112, 73);
-  background-color: rgb(226, 250, 246);
+  color: #0b7049;
+  background-color: #e2faf6;
 }
 
-.tag-parent {
+#tag-parent {
   font-size: 12px;
 }
 
@@ -300,27 +266,18 @@ ul.link-parent, ul.pin-parent {
   color: unset;
 }
 
-.tag-title, .tag-note, .note-title, .date-note {
+.tag-title, .tag-note, .note-title, .date-note, .pinned, .page-link, .link-item {
   cursor: pointer;
 }
-.tag-title:hover, .tag-note:hover, .note-title:hover, .date-note:hover {
+.tag-title:hover, .tag-note:hover, .note-title:hover, .date-note:hover, .pinned:hover, .page-link:hover, .link-item:hover {
   background-color: #eee;
 }
 
-/*
-#tags .tag-title{
-    &::after {
-        @extend %font-awesome;
-        font-size: 0.5rem;
-        content: "\f07c";
-    }
-}
-*/
 .node-icon {
   position: absolute;
   top: 1px;
   left: -12px;
-  color: rgb(11, 112, 73);
+  color: #0b7049;
 }
 
 .fa-caret-right {
@@ -331,16 +288,14 @@ ul.link-parent, ul.pin-parent {
   cursor: zoom-out;
 }
 
-/*
-.fa-caret-right:before {
-    content: "\f0da";
-    content: "\f0d7";
+.fa-angle-right,
+.fa-angle-double-right,
+.fa-angle-double-left {
+  color: #555;
+  margin-right: 2px;
 }
-.collapsed::before {
-    content: "\f0da";
-}
-*/
-.hiddennode {
+
+.hidden {
   display: none;
 }
 
@@ -367,8 +322,8 @@ ul.link-parent, ul.pin-parent {
     grid-row: 3/4;
   }
 
-  .body-text {
+  #body-text {
     font-size: 14px;
     line-height: 18px;
   }
-}/*# sourceMappingURL=chanoma.css.map */
+}
