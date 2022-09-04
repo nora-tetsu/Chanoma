@@ -199,6 +199,7 @@ const render = {
             const split = data.tag.split(',');
             split.forEach(tag=>{
                 const item = document.createElement("li");
+                item.style.marginLeft = '-14px';
                 const icon = document.createElement('i');
                 icon.className = 'fas fa-angle-right';
                 const note = document.createElement("span");
