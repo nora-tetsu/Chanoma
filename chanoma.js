@@ -121,7 +121,7 @@ const render = {
             const a = document.createElement("a");
             a.href = data.URL;
             a.title = data.title;
-            a.parent="_blank";
+            a.target="_blank";
             item.append(a);
             const img = document.createElement("img");
             img.src = data.imgsrc;
