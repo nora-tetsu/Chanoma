@@ -441,7 +441,12 @@ const pickup = {
             const texttitle = document.createElement("span");
             texttitle.innerText = sorted[i].title;
             texttitle.className = "date-note";
-            texttitle.addEventListener("click",function(){body.setData(this.innerText)});
+            texttitle.addEventListener("click",function(){body.setData(this.firstChild.textContent)});
+            const tag = document.createElement('span');
+            tag.innerText = ' #' + sorted[i].tag;
+            tag.style.color = '#ddd';
+            tag.style.fontSize = '10px';
+            texttitle.append(tag);
             item.append(icon,texttitle);
             dateul.append(item);
             body.reflectLinkEvent();
