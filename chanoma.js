@@ -344,7 +344,7 @@ const body = {
             // if(done.includes(data.title)) return;
             const back = new LinkLi(data.title,'backlink');
             back.querySelector('span.link-item').title = 'このノートにリンクしているノート';
-            parent.append(back);
+            parent.prepend(back);
             done.push(data.title);
         })
         const filterImplyBack = DATA.filter(obj=>!obj.body.includes(`[[${title}]]`)&&obj.body.includes(title));
