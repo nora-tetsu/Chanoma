@@ -1,15 +1,73 @@
+function createDOM(tagname,option,target,position='append'){
+    const elm = document.createElement(tagname);
+    editDOM(elm,option,target,position);
+    return elm;
+}
+function editDOM(elm,option,target,position='append'){
+    if(target){
+        switch(position){
+            case 'append' :
+                target.append(elm);
+                break;
+            case 'prepend' :
+                target.prepend(elm);
+                break;
+            case 'after' :
+                target.after(elm);
+                break;
+            case 'before' :
+                target.before(elm);
+                break;
+            default:
+                console.error('editDOM: position is invalid');
+        }
+    }
+    if(option&&typeof option === 'object'){
+        for (var key in option) {
+            if(key.startsWith('on')){
+                elm.addEventListener(key.slice(2), option[key]);
+                continue;
+            }
+            switch(key){
+                case '_addClass' :
+                    elm.classList.add(...option[key]);
+                    break;
+                case '_removeClass' :
+                    elm.classList.remove(...option[key]);
+                    break;
+                case 'css' :
+                    Object.entries(option[key]).forEach(([key, value]) => elm.style.setProperty(key, value));
+                    break;
+                case 'id' :
+                case 'className' :
+                case 'value' :
+                case 'innerText' :
+                case 'innerHTML' :
+                case 'checked' :
+                    elm[key] = option[key];
+                    break;
+                default:
+                    elm.setAttribute(key, option[key]);
+            }
+        }
+    }
+}
+
+
 class LinkLi extends HTMLLIElement {
     constructor(title,type,option) {
         super();
-        this.setAttribute('is','link-li');
-        this.setAttribute('name',title);
-        const icon = document.createElement('i');
-        const text = document.createElement("span");
-        text.innerText = title;
-        text.classList.add('title');
-        const ul = document.createElement('ul');
-        this.append(icon,text,ul);        
-        this.setAttribute('data-type',type);
+        createDOM('i',{},this);
+        createDOM('span',{
+            innerText: title,
+            className: 'title',
+        },this);
+        createDOM('ul',{},this);
+        editDOM(this,{
+            is: 'link-li',
+            name: title,
+            'data-type': type,
+        });
         if(option) option(this);
     }
     getTitle(){
@@ -62,8 +120,10 @@ const LIST = {
         {"title":"更新日時順の最新ノート","function":()=>pickup.dateOrder("edited")},
         {"title":"リンク済みキーワード一覧","function":()=>pickup.keywords()},
         //{"title":"ランダムピックアップ 5件","function":()=>pickup.random(5)},
+        {"title":"検索","function":()=>pickup.search()},
     ],
     exlink: [
+        {"title":"茶の間（公開）","URL":"https://nora-tetsu.github.io/Chanoma/","imgsrc":"https://gyazo.com/8e76071e5281e7396c84c83d32554939/max_size/1000"},
         {"title":"Noratetsu Lab(Blog)","URL":"https://noratetsu.blogspot.com/","imgsrc":"https://www.blogger.com/img/logo_blogger_40px.png"},
         {"title":"Scrapbox","URL":"https://scrapbox.io/noratetsu/","imgsrc":"https://gyazo.com/5f93e65a3b979ae5333aca4f32600611/max_size/1000"},
         {"title":"Twitter","URL":"https://twitter.com/Foam_Crab","imgsrc":"https://gyazo.com/c6f9ef45d7c4b64fe31909485b8a9222/max_size/1000"},
@@ -71,10 +131,15 @@ const LIST = {
         {"title":"Substack","URL":"https://substack.com/profile/97326198-foam_crab","imgsrc":"https://gyazo.com/697681c54bb68010e6e027d724d1dd2d/max_size/1000"},
         {"title":"note","URL":"https://note.com/noratetsu/","imgsrc":"https://gyazo.com/57f5da416fed69ca4f8621766aab12f0/max_size/1000"},
     ],
+    json: {
+        private: "C:/Users/RA/OneDrive/BODY/G-MyTools_Electron/src/data/Chanoma.json",
+        public: "C:/Users/RA/OneDrive/BODY/G-Public_ChanomaSource/chanomaData.json",
+    }
 }
 
 const database = {
     data:[],
+    deleted: [],
     sortCreated(){
         // 作成日時降順に並び替えたオブジェクトを返す
         const result = DATA.slice().sort(function(a, b) {
@@ -116,16 +181,13 @@ const render = {
         const parent = document.getElementById("exlinks");
         parent.innerHTML = "";
         LIST.exlink.forEach(data=>{
-            const item = document.createElement("li");
-            parent.append(item);
-            const a = document.createElement("a");
-            a.href = data.URL;
-            a.title = data.title;
-            a.target="_blank";
-            item.append(a);
-            const img = document.createElement("img");
-            img.src = data.imgsrc;
-            a.append(img);
+            const item = createDOM('li',{},parent);
+            const a = createDOM('a',{
+                href: data.URL,
+                title: data.title,
+                target: '_blank',
+            },item);
+            const img = createDOM('img',{src: data.imgsrc},a);
         })
     },
     pinned(){
@@ -136,14 +198,16 @@ const render = {
         const filter = DATA.filter(obj=>obj.pin);
         filter.forEach(data=>{
             const item = new LinkLi(data.title,'pinned');
-            item.addEventListener("click",function(){body.setData(this.innerText)});
-            parent.append(item);
+            editDOM(item,{
+                onclick: function(){body.setData(this.innerText)},
+            },parent);
         })
         // 関数を発動するアイテムを生成
         LIST.pin.forEach(data=>{
             const item = new LinkLi(data.title,'pickup');
-            item.addEventListener("click",data.function);
-            parent.append(item);
+            editDOM(item,{
+                onclick: data.function,
+            },parent);
         })
     },
     tags(){
@@ -176,21 +240,21 @@ const render = {
             })
         })
         function createItem(title,tagname){
-            const item = document.createElement("li");
-            item.setAttribute("name",tagname);
-            const nodeicon = document.createElement("i");
-            nodeicon.className = "node-icon fas fa-caret-right";
-            nodeicon.addEventListener("click",toggleExpand);
-            const span = document.createElement("span");
-            span.className = "tag-title";
-            span.setAttribute('data-tag-full',tagname);
-            span.setAttribute('data-tag',title);
-            span.innerText = title;
-            span.addEventListener('click',function(){body.setTagdata(this)})
-            item.append(nodeicon,span);
-            const ul = document.createElement("ul");
-            ul.className = "hidden";
-            item.append(ul);
+            const item = createDOM('li',{
+                name: tagname,
+            });
+            createDOM('i',{
+                className: 'node-icon fas fa-caret-right',
+                onclick: toggleExpand,
+            },item);
+            createDOM('span',{
+                className: 'tag-title',
+                'data-tag-full': tagname,
+                'data-tag': title,
+                innerText: title,
+                onclick: function(){body.setTagdata(this)},
+            },item);
+            createDOM('ul',{className:'hidden'},item);
             return item;
         }
         
@@ -198,17 +262,15 @@ const render = {
         sorted.forEach(data=>{
             const split = data.tag.split(',');
             split.forEach(tag=>{
-                const item = document.createElement("li");
-                item.style.marginLeft = '-14px';
-                const icon = document.createElement('i');
-                icon.className = 'fas fa-angle-right';
-                const note = document.createElement("span");
-                note.className = "tag-note";
-                note.innerText = data.title;
-                note.addEventListener("click",function(){body.setData(this.innerText)})
-                item.append(icon,note);
                 const parent = tag ? list.querySelector(`li[name="${tag}"]`) : list.querySelector('[name="undefined"]');
-                parent.querySelector("ul").append(item);
+                const item = createDOM('li',{css:{'margin-left':'-14px'}},parent.querySelector("ul"));
+                createDOM('i',{className:'fas fa-angle-right'},item);
+                createDOM('span',{
+                    className: 'tag-note',
+                    innerText: data.title,
+                    oncontextmenu: e =>{copyToClipboard(`[[${data.title}]]`)},
+                    onclick: function(){body.setData(this.innerText)},
+                },item);
             })
         })
 
@@ -237,11 +299,11 @@ const body = {
         document.getElementById('body-title').innerText = title;
         const find = DATA.find(obj=>obj.title==title);
         if(find){
-            document.getElementById('body-text').innerHTML = processText(find.body);
+            //document.getElementById('body-text').innerHTML = processText(find.body);
+            MarkdownToHTML(find.body,document.getElementById('body-text'));
             document.getElementById('body-created').innerText = `作成日時： ${find.created}`;
             document.getElementById('body-edited').innerText = `更新日時： ${find.edited}`;
             this.renderTags(find);
-            body.renderTweetByID();
             body.reflectLinkEvent();
         }
         body.renderLinks();
@@ -265,19 +327,20 @@ const body = {
         
         const tagarea = document.getElementById('body-tag');
         const parenttags = thisname.split("/");
-        let t;
+        let tagname = '';
         if(parenttags.length>1){
             for(let i = 0; i < parenttags.length-1; i++){
-                const span = document.createElement("span");
-                span.innerText = parenttags[i];
-                span.setAttribute('data-tag',parenttags[i]);
-                span.className = "tag-title";
-                tagname = i==0 ? parenttags[i] : tagname + "/" + parenttags[i];
-                span.setAttribute('data-tag-full',tagname);
-                span.addEventListener("click",function(){body.setTagdata(this)});
                 const hashtag = document.createTextNode('#');
                 const slash = document.createTextNode('/');
-                i==0 ? tagarea.append(hashtag,span) : tagarea.append(slash,span);
+                i==0 ? tagarea.append(hashtag) : tagarea.append(slash);
+                tagname = i==0 ? parenttags[i] : tagname + "/" + parenttags[i];
+                createDOM('span',{
+                    className: 'tag-title',
+                    innerText: parenttags[i],
+                    'data-tag': parenttags[i],
+                    'data-tag-full': tagname,
+                    onclick: function(){body.setTagdata(this)},
+                },tagarea);
             }
         }
         document.querySelectorAll('#body .tag-title').forEach(elm=>{
@@ -293,26 +356,27 @@ const body = {
     renderTags(data){
         const split = data.tag.split(',');
         split.forEach(tag=>{
-            const parent = document.createElement("span");
+            const parent = createDOM('span',{},document.getElementById('body-tag'));
             const tagtree = tag.split('/');
             let tagname = '';
             tagtree.forEach(value=>{
-                tagname=='' ? tagname = value : tagname = `${tagname}/${value}`;
-                const span = document.createElement("span");
-                span.setAttribute('data-tag-full',tagname);
-                span.setAttribute('data-tag',value);
-                span.innerText = value;
-                span.classList.add('tag-title');
-                span.addEventListener('click',function(){body.setTagdata(this)})
+                
                 const hashtag = document.createTextNode('#');
                 const slash = document.createTextNode('/');
                 if(!parent.innerHTML){
-                    parent.append(hashtag,span);
+                    parent.append(hashtag);
                 }else{
-                    parent.append(slash,span);
+                    parent.append(slash);
                 }
+                tagname=='' ? tagname = value : tagname = `${tagname}/${value}`;
+                const span = createDOM('span',{
+                    className: 'tag-title',
+                    innerText: value,
+                    'data-tag': value,
+                    'data-tag-full': tagname,
+                    onclick: function(){body.setTagdata(this)},
+                },parent);
             })
-            document.getElementById('body-tag').append(parent);
         })
     },
     renderLinks(){
@@ -367,33 +431,6 @@ const body = {
             }
         })
     },
-    renderTweetByID(){
-        // https://platform.twitter.com/widgets.js が必要
-        const text = document.getElementById('body-text').innerHTML;
-        // https://twitter.com/Foam_Crab/status/1505159525334020098
-        const match = text.match(/《https\:\/\/twitter\.com\/.*\/status\/[0-9]*》/g);
-        if(match==null) return;
-        let editedtext = text;
-        for(let i = 0; i < match.length; i++){
-            const tweetId = match[i].replace(/《.*\/status\/([0-9]*)》/,"$1");
-            const tag = `<div class="tweetblock" name="${tweetId}">${match[i].replace('《','').replace('》','')}</div>`;
-            editedtext = editedtext.replace(match[i],tag);
-            document.getElementById('body-text').innerHTML = editedtext;
-            let target = document.querySelector('[name="'+tweetId+'"]');
-            // http://westplain.sakuraweb.com/translate/twitter/Documentation/Twitter-for-Websites/JavaScript/Scripting-Factory-Functions.cgi
-            twttr.widgets.createTweet(
-            tweetId,
-            target,
-            {
-                align: 'center',
-                width: '90%'
-            })
-            .then(function (el) {
-                target.firstChild.remove();
-                console.log("@ev's Tweet has been displayed.")
-            });
-        }
-    },
     reflectLinkEvent(){
         // 本文中のリンクが空リンクかどうかチェック
         const pageLink = document.querySelectorAll('#body-text .page-link');
@@ -423,32 +460,30 @@ const pickup = {
             const date = sorted[i][type].substr(0,10);
             let datediv,dateul;
             if(!document.querySelector('[name="'+date+'"]')){
-                datediv = document.createElement("div");
-                datediv.setAttribute("name",date);
-                const datelabel = document.createElement("p");
-                datelabel.innerText = date;
-                datelabel.className = "datelabel";
-                dateul = document.createElement("ul");
-                document.getElementById('body-text').append(datediv);
-                datediv.append(datelabel,dateul);
+                datediv = createDOM('div',{
+                    name: date,
+                },document.getElementById('body-text'));
+                const datelabel = createDOM('p',{
+                    innerText: date,
+                    className: 'datelabel',
+                },datediv);
+                dateul = createDOM('ul',{},datediv);
             }else{
                 datediv = document.querySelector('[name="'+date+'"]');
                 dateul = datediv.querySelector("ul");
             }
-            const item = document.createElement("li");
-            const icon = document.createElement('i');
-            icon.className = 'fas fa-angle-right';
-            const texttitle = document.createElement("span");
-            texttitle.innerText = sorted[i].title;
-            texttitle.className = "date-note";
-            texttitle.addEventListener("click",function(){body.setData(this.firstChild.textContent)});
-            const tag = document.createElement('span');
-            tag.innerText = ' #' + sorted[i].tag;
-            tag.style.color = '#ddd';
-            tag.style.fontSize = '10px';
-            texttitle.append(tag);
-            item.append(icon,texttitle);
-            dateul.append(item);
+            const item = createDOM('li',{},dateul);
+            const icon = createDOM('i',{className:'fas fa-angle-right'},item);
+            const texttitle = createDOM('span',{
+                innerText: sorted[i].title,
+                className: 'date-note',
+                onclick: function(){body.setData(this.firstChild.textContent)},
+            },item);
+            const tag = createDOM('span',{
+                innerText: ' #' + sorted[i].tag,
+                css: {color: '#ddd','font-size': '10px'},
+            },texttitle);
+            
             body.reflectLinkEvent();
         }
     },
@@ -459,15 +494,16 @@ const pickup = {
         const pickdata = database.sortCreated().filter(obj=>obj.tag.includes("お知らせ"));
         document.getElementById('body-title').innerText = `お知らせ一覧（${pickdata.length}件）`;
         pickdata.forEach(data=>{
-            const p = document.createElement("p");
-            p.innerText = data.title;
-            p.className = "note-title";
-            p.addEventListener("click",function(){body.setData(this.innerText)});
-            const div = document.createElement("div");
-            div.innerHTML = processText(data.body);
-            target.append(p,div);
+            const p = createDOM('p',{
+                innerText: data.title,
+                className: 'note-title',
+                onclick: function(){body.setData(this.innerText)},
+            },target);
+            const div = createDOM('div',{
+                // innerHTML: processText(data.body),
+            },target);
+            MarkdownToHTML(data.body,div);
         })
-        body.renderTweetByID();
         body.reflectLinkEvent();
     },
     random(num){
@@ -484,17 +520,18 @@ const pickup = {
                 x = random(0,pickdata.length-1); // 存在する件数内で乱数生成
             }while(xArray.includes(x)); // 重複しなくなるまで（既に配列にある場合はやり直し）
 
-            const p = document.createElement("p");
-            p.innerText = pickdata[x].title;
-            p.className = "note-title";
-            p.addEventListener("click",function(){body.setData(this.innerText)});
-            const div = document.createElement("div");
-            div.innerHTML = processText(pickdata[x].body);
-            target.append(p,div);
-
+            const p = createDOM('p',{
+                innerText: pickdata[x].title,
+                className: 'note-title',
+                onclick: function(){body.setData(this.innerText)},
+            },target);
+            const div = createDOM('div',{
+                // innerHTML: processText(pickdata[x].body),
+            },target);
+            MarkdownToHTML(pickdata[x].body,div);
+            
             xArray.push(x);
         }
-        //body.renderTweetByID(); 挙動が怪しいのでツイート埋め込みはしない
     },
     keywords(){
         body.clear();
@@ -504,26 +541,79 @@ const pickup = {
 
         document.getElementById('body-title').innerText = `リンクが生成されているキーワード（リンク数/言及数）（${keywordList.length}件）`;
         const target = document.getElementById('body-text');
-        const parent = document.createElement("ul");
-        target.append(parent);
+        const parent = createDOM('ul',{},target);
         keywordList.forEach(data=>{
-            const item = document.createElement("li");
-            parent.append(item);
-            const icon = document.createElement('i');
-            icon.className = 'fas fa-angle-right';
-            const span = document.createElement("span");
-            span.innerText = data.keyword;
-            span.className = "date-note page-link emptylink";
-            if(DATA.find(obj=>obj.title==data.keyword)) span.classList.remove("emptylink");
-            span.setAttribute("name",data.keyword);
-            span.addEventListener("click",function(){body.setData(this.innerText)});
-            const numspan = document.createElement("span");
-            numspan.className = "times"
-            numspan.innerText = `（${data.count}/${DATA.filter(e => e.body.includes(data.keyword)).length}）`;
-            item.append(icon,span,numspan);
+            const item = createDOM('li',{},parent);
+            createDOM('i',{className:'fas fa-angle-right'},item);
+            createDOM('span',{
+                innerText: data.keyword,
+                className: DATA.find(obj=>obj.title==data.keyword) ? 'date-note page-link' : 'date-note page-link emptylink',
+                name: data.keyword,
+                onclick: function(){body.setData(this.innerText)},
+            },item);
+            createDOM('span',{
+                className: 'times',
+                innerText: `（${data.count}/${DATA.filter(e => e.body.includes(data.keyword)).length}）`,
+            },item);
         })
     },
+    search(){
+        body.clear();
+        document.getElementById('body-title').innerText = '検索';
+        const target = document.getElementById('body-text');
+        const parent = createDOM('ul',{},target);
+        const search = createDOM('input',{
+            type: 'search',
+            placeholder: '空白文字区切りでAND検索 -でNOT検索 半角スペース始まりでOR検索 / onchangeで実行',
+            css: {width: '100%'},
+            onchange: ()=>{
+                parent.innerHTML = '';
+                if(!search.value) return;
+                let filter = [];
+                if(search.value.startsWith(' ')){
+                    const words = search.value.replace(/^\s/,'').split(/\s/);
+                    words.forEach(word=>{
+                        if(word.startsWith('-')){
+                            word = word.replace(/^-/,'');
+                            filter = filter.filter(obj=>!obj.title.includes(word)&&!obj.body.includes(word));
+                        }else{
+                            const match = DATA.filter(obj=>obj.title.includes(word)||obj.body.includes(word));
+                            filter = filter.concat(match);
+                        }
+                    })
+                }else{
+                    filter = DATA.slice();
+                    const words = search.value.split(/\s/);
+                    words.forEach(word=>{
+                        if(word.startsWith('-')){
+                            word = word.replace(/^-/,'');
+                            filter = filter.filter(obj=>!obj.title.includes(word)&&!obj.body.includes(word));
+                        }else{
+                            filter = filter.filter(obj=>obj.title.includes(word)||obj.body.includes(word));
+                        }
+                    })
+                }
+                filter.forEach(data=>{
+                    const txt = data.body.replaceAll('<br>','\n');
+                    const item = createDOM('li',{
+                        title: txt.length>500 ? txt.slice(0,500)+'…' : txt,
+                    },parent);
+                    const icon = createDOM('i',{className: 'fas fa-angle-right'},item);
+                    const texttitle = createDOM('span',{
+                        innerText: data.title,
+                        className: 'date-note',
+                        onclick: function(){body.setData(this.firstChild.textContent)},
+                    },item);
+                    const tag = createDOM('span',{
+                        innerText: ' #' + data.tag,
+                        css: {color: '#ddd','font-size': '10px'},
+                    },texttitle);
+                })
+            }
+        },parent,'after');
+    }
 }
+
 
 // 本文データを加工してHTMLタグを付与
 function processText(txt){
@@ -560,6 +650,86 @@ function processText(txt){
     return editedtxt;
 }
 
+function MarkdownToHTML(text,target){
+    const process = processText(text);
+    const replace = process.replace(/(\n|<br>)/g,'  \n');
+
+    // 要 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    target.innerHTML = marked.parse(replace);
+    target.classList.add('formatted');
+    
+    // トグルできるようにする
+    target.querySelectorAll('li').forEach(li=>{
+        li.setAttribute('data-status','expanded');
+        const icon = createDOM('i',{
+            className: 'node-icon fas fa-caret-down',
+            css: {color: li.querySelector('ul') ? '#444' : '#ddd'},
+            onclick: ()=>{
+                if(li.getAttribute('data-status')=='expanded'){
+                    li.setAttribute('data-status','collapsed');
+                    icon.classList.remove('fa-caret-down');
+                    icon.classList.add('fa-caret-right');
+                    if(li.querySelector('ul')){
+                        li.querySelector('ul').classList.add('hidden');
+                    }
+                }else{
+                    li.setAttribute('data-status','expanded');
+                    icon.classList.remove('fa-caret-right');
+                    icon.classList.add('fa-caret-down');
+                    if(li.querySelector('ul')){
+                        li.querySelector('ul').classList.remove('hidden');
+                    }
+                }
+            },
+        },li,'prepend');
+    })
+    
+    target.querySelectorAll('span.link').forEach(link=>{
+        link.classList.add('page-link','emptylink');
+        link.innerText = replaceRegExp(link.innerText,'[[]]');
+    })
+    target.querySelectorAll('img').forEach(elm=>{
+        if(elm.nextSibling.textContent.startsWith('{')){
+            elm.setAttribute('style',elm.nextSibling.textContent.replace('{','').replace('}',''));
+            elm.nextSibling.remove();
+        }
+    })
+    target.querySelectorAll('p').forEach(elm=>{
+        const link = elm.querySelector('a');
+        if(!link) return;
+        if(link.innerText.startsWith('https://twitter.com/')&&link.innerText.endsWith('》')){
+            const orig = elm.innerText;
+            elm.innerHTML = '';
+            const tweetId = orig.replace(/《.*\/status\/([0-9]*)》/,"$1").trim();
+            const tweetblock = createDOM('div',{
+                className: 'tweetblock',
+                name: tweetId,
+                innerText: orig.replace('《','').replace('》',''),
+            },elm);
+            // http://westplain.sakuraweb.com/translate/twitter/Documentation/Twitter-for-Websites/JavaScript/Scripting-Factory-Functions.cgi
+            twttr.widgets.createTweet(
+            tweetId,
+            tweetblock,
+            {
+                align: 'center',
+                width: '90%'
+            })
+            .then(function (el) {
+                tweetblock.firstChild.remove();
+                console.log(`${orig.replace('《','').replace('》','')}\nhas been displayed`);
+            });
+        }
+    })
+    // heading要素のidをdata-idに変える
+    for(let i = 1; i < 10; i++){
+        target.querySelectorAll(`h${i}`).forEach(elm=>{
+            if(elm.id){
+                elm.setAttribute('data-id',elm.id);
+                elm.removeAttribute('id');
+            }
+        })
+    }
+}
 
 // タグ一覧の子項目開閉
 function toggleExpand(){
@@ -588,7 +758,8 @@ function FetchData(json){
         .then(response => response.text())
         .then(data => {
             try{
-                database.data = JSON.parse(data.replace(/\\n/g,"<br>"));
+                //database.data = JSON.parse(data.replace(/\\n/g,"<br>"));
+                database.data = JSON.parse(data);
             }catch(e){
                 console.error('サーバーエラー');
                 document.getElementById('body-title').innerText = "";
