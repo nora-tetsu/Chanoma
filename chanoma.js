@@ -120,21 +120,15 @@ const LIST = {
         {"title":"更新日時順の最新ノート","function":()=>pickup.dateOrder("edited")},
         {"title":"リンク済みキーワード一覧","function":()=>pickup.keywords()},
         //{"title":"ランダムピックアップ 5件","function":()=>pickup.random(5)},
-        {"title":"検索","function":()=>pickup.search()},
     ],
     exlink: [
-        {"title":"茶の間（公開）","URL":"https://nora-tetsu.github.io/Chanoma/","imgsrc":"https://gyazo.com/8e76071e5281e7396c84c83d32554939/max_size/1000"},
         {"title":"Noratetsu Lab(Blog)","URL":"https://noratetsu.blogspot.com/","imgsrc":"https://www.blogger.com/img/logo_blogger_40px.png"},
         {"title":"Scrapbox","URL":"https://scrapbox.io/noratetsu/","imgsrc":"https://gyazo.com/5f93e65a3b979ae5333aca4f32600611/max_size/1000"},
         {"title":"Twitter","URL":"https://twitter.com/Foam_Crab","imgsrc":"https://gyazo.com/c6f9ef45d7c4b64fe31909485b8a9222/max_size/1000"},
         {"title":"Twilog","URL":"https://twilog.org/Foam_Crab/asc","imgsrc":"http://www.google.com/s2/favicons?domain=https://twilog.org/Foam_Crab/asc"},
         {"title":"Substack","URL":"https://substack.com/profile/97326198-foam_crab","imgsrc":"https://gyazo.com/697681c54bb68010e6e027d724d1dd2d/max_size/1000"},
         {"title":"note","URL":"https://note.com/noratetsu/","imgsrc":"https://gyazo.com/57f5da416fed69ca4f8621766aab12f0/max_size/1000"},
-    ],
-    json: {
-        private: "C:/Users/RA/OneDrive/BODY/G-MyTools_Electron/src/data/Chanoma.json",
-        public: "C:/Users/RA/OneDrive/BODY/G-Public_ChanomaSource/chanomaData.json",
-    }
+    ]
 }
 
 const database = {
@@ -556,61 +550,6 @@ const pickup = {
                 innerText: `（${data.count}/${DATA.filter(e => e.body.includes(data.keyword)).length}）`,
             },item);
         })
-    },
-    search(){
-        body.clear();
-        document.getElementById('body-title').innerText = '検索';
-        const target = document.getElementById('body-text');
-        const parent = createDOM('ul',{},target);
-        const search = createDOM('input',{
-            type: 'search',
-            placeholder: '空白文字区切りでAND検索 -でNOT検索 半角スペース始まりでOR検索 / onchangeで実行',
-            css: {width: '100%'},
-            onchange: ()=>{
-                parent.innerHTML = '';
-                if(!search.value) return;
-                let filter = [];
-                if(search.value.startsWith(' ')){
-                    const words = search.value.replace(/^\s/,'').split(/\s/);
-                    words.forEach(word=>{
-                        if(word.startsWith('-')){
-                            word = word.replace(/^-/,'');
-                            filter = filter.filter(obj=>!obj.title.includes(word)&&!obj.body.includes(word));
-                        }else{
-                            const match = DATA.filter(obj=>obj.title.includes(word)||obj.body.includes(word));
-                            filter = filter.concat(match);
-                        }
-                    })
-                }else{
-                    filter = DATA.slice();
-                    const words = search.value.split(/\s/);
-                    words.forEach(word=>{
-                        if(word.startsWith('-')){
-                            word = word.replace(/^-/,'');
-                            filter = filter.filter(obj=>!obj.title.includes(word)&&!obj.body.includes(word));
-                        }else{
-                            filter = filter.filter(obj=>obj.title.includes(word)||obj.body.includes(word));
-                        }
-                    })
-                }
-                filter.forEach(data=>{
-                    const txt = data.body.replaceAll('<br>','\n');
-                    const item = createDOM('li',{
-                        title: txt.length>500 ? txt.slice(0,500)+'…' : txt,
-                    },parent);
-                    const icon = createDOM('i',{className: 'fas fa-angle-right'},item);
-                    const texttitle = createDOM('span',{
-                        innerText: data.title,
-                        className: 'date-note',
-                        onclick: function(){body.setData(this.firstChild.textContent)},
-                    },item);
-                    const tag = createDOM('span',{
-                        innerText: ' #' + data.tag,
-                        css: {color: '#ddd','font-size': '10px'},
-                    },texttitle);
-                })
-            }
-        },parent,'after');
     }
 }
 
