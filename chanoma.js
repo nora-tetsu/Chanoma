@@ -211,6 +211,7 @@ const LIST = {
 
 const getElm = {
     get bodyBox() { return document.getElementById('body') },
+    get bodyTitle() { return document.getElementById('body-title') },
     get bodyText() { return document.getElementById('body-text') },
     get pageLinks() { return getElm.bodyText.querySelectorAll('span.page-link') },
     get bodyTag() { return document.getElementById('body-tag') },
@@ -664,7 +665,7 @@ function MarkdownToHTML(text, target) {
         if (link.textContent.startsWith('https://twitter.com/') && link.textContent.endsWith('》')) {
             const orig = elm.textContent;
             elm.innerHTML = '';
-            const tweetId = orig.replace(/《.*\/status\/([0-9]*)》/, "$1").trim();
+            const tweetId = orig.replace(/《?.*\/status\/([0-9]*)》/, "$1").trim();
             const tweetblock = createDOM('div', {
                 className: 'tweetblock',
                 name: tweetId,
@@ -679,9 +680,9 @@ function MarkdownToHTML(text, target) {
                     width: '90%'
                 })
                 .then(function (el) {
-                    tweetblock.firstChild.remove();
+                    //tweetblock.firstChild.remove();
                     console.log(`${orig.replace('《', '').replace('》', '')}\nhas been displayed`);
-                });
+                })
         }
     })
     // heading要素のidをdata-idに変える
