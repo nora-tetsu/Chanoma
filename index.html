@@ -36,7 +36,7 @@
 
         /* 全体のテーマ */
         body {
-            font-family: "UD デジタル 教科書体 NK-B", "MotoyaLMaru W3 mono", "Roboto", Helvetica, Arial, "Hiragino Sans", sans-serif;
+            font-family: "UD デジタル 教科書体 NK-B", "MotoyaLMaru W3 mono", "Roboto", Helvetica, Arial, "Hiragino Sans", sans-serif !important;
             color: #553;
         }
 
@@ -130,7 +130,6 @@
             const content = section.appendChild(document.createElement('p'));
             content.classList.add('content');
             content.textContent = text;
-            content.contentEditable = true;
             return section;
         }
 
