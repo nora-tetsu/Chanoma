@@ -1,49 +1,170 @@
-<html>
+<html lang="ja">
+
 <head>
-<meta charset="utf-8">
-<meta content='width=device-width,initial-scale=1.0,user-scalable=yes' name='viewport'/>
-<title>のらてつの茶の間</title>
-<link rel="stylesheet" href="https://nora-tetsu.github.io/Chanoma/chanoma.css"/>
-<link rel ="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-<script src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+    <meta charset="utf-8">
+    <meta content='width=device-width,initial-scale=1.0,user-scalable=yes' name='viewport' />
+    <meta http-equiv="Content-Language" content="ja">
+    <meta name="google" content="notranslate">
+    <title>のらてつの茶の間 Light</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        /* 背景を青海波にする */
+        body {
+            --color-A: #f8f8f4;
+            --color-B: #f4f4f0;
+        }
+
+        h1 {
+            --color-A: #646E78;
+            --color-B: #505564;
+            opacity: 0.9;
+            color: #fff;
+            padding: 5px 10px;
+            margin-top: 0;
+        }
+
+        body,
+        h1 {
+            background-image:
+                radial-gradient(circle at 100% 150%, var(--color-B) 24%, var(--color-A) 24%, var(--color-A) 28%, var(--color-B) 28%, var(--color-B) 36%, var(--color-A) 36%, var(--color-A) 40%, transparent 40%, transparent),
+                radial-gradient(circle at 0 150%, var(--color-B) 24%, var(--color-A) 24%, var(--color-A) 28%, var(--color-B) 28%, var(--color-B) 36%, var(--color-A) 36%, var(--color-A) 40%, transparent 40%, transparent),
+                radial-gradient(circle at 50% 100%, var(--color-A) 10%, var(--color-B) 10%, var(--color-B) 23%, var(--color-A) 23%, var(--color-A) 30%, var(--color-B) 30%, var(--color-B) 43%, var(--color-A) 43%, var(--color-A) 50%, var(--color-B) 50%, var(--color-B) 63%, var(--color-A) 63%, var(--color-A) 71%, transparent 71%, transparent),
+                radial-gradient(circle at 100% 50%, var(--color-A) 5%, var(--color-B) 5%, var(--color-B) 15%, var(--color-A) 15%, var(--color-A) 20%, var(--color-B) 20%, var(--color-B) 29%, var(--color-A) 29%, var(--color-A) 34%, var(--color-B) 34%, var(--color-B) 44%, var(--color-A) 44%, var(--color-A) 49%, transparent 49%, transparent),
+                radial-gradient(circle at 0 50%, var(--color-A) 5%, var(--color-B) 5%, var(--color-B) 15%, var(--color-A) 15%, var(--color-A) 20%, var(--color-B) 20%, var(--color-B) 29%, var(--color-A) 29%, var(--color-A) 34%, var(--color-B) 34%, var(--color-B) 44%, var(--color-A) 44%, var(--color-A) 49%, transparent 49%, transparent);
+            background-size: 128px 64px;
+        }
+
+        /* 全体のテーマ */
+        body {
+            font-family: "UD デジタル 教科書体 NK-B", "MotoyaLMaru W3 mono", "Roboto", Helvetica, Arial, "Hiragino Sans", sans-serif;
+            color: #553;
+        }
+
+        /* スクロールバー設定およびバーの幅に応じた調整 */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.4);
+            border: none;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
+            box-shadow: none;
+        }
+
+
+        input[type="date"] {
+            font-family: "Kosugi Maru" !important;
+            vertical-align: text-bottom;
+        }
+
+        #title {
+            font-size: 20px;
+            margin: 4px;
+            cursor: pointer;
+        }
+
+        #main {
+            height: calc(100vh - 60px);
+            overflow-y: scroll;
+            margin: 10px;
+        }
+
+        section {
+            background-color: #fff;
+            white-space: break-spaces;
+        }
+
+        section p.index {
+            background-color: #888;
+            color: #fff;
+            margin: 0;
+            cursor: default;
+        }
+
+        section p.content {
+            font-size: 14px;
+            padding: 10px;
+            margin: 0;
+        }
+    </style>
 </head>
+
 <body>
     <header>
-        <div id="title"><img src="https://gyazo.com/8e76071e5281e7396c84c83d32554939/max_size/1000" style="width:24px;">のらてつの茶の間</div>
-        <ul id="exlinks">
-        </ul>
+        <span id="title" title="一番上に戻る">のらてつの茶の間 Light</span>
+        <input type="date" id="scroll" title="指定した日付があればジャンプ">
+        <a target="_blank" href="https://nora-tetsu.github.io/">Noratetsu's page</a>
     </header>
-    <main>
-        <div id="content">
-            <div id="tags">
-                <p class="label">分類タグ</p>
-                <ul id="tag-parent">
-                    <li><i class="node-icon fas fa-caret-right"></i><span class="tag-title" name="undefined">(undefined)</span>
-                        <ul class="hidden"></ul>
-                    </li>
-                </ul>
-            </div>
-            <div id="pins">
-                <p class="label">ピン</p>
-                <ul id="pin-parent"></ul>
-            </div>
-            <div id="body">
-                <p class="label">つぶやき</p>
-                <div id="body-tag"></div>
-                <p id="body-title">Loading...</p>
-                <div id="body-text"></div>
-                <span id="body-created"></span>
-                <span id="body-edited"></span>
-            </div>
-            <div id="links">
-                <p class="label">バックリンク/リンク</p>
-                <ul id="link-parent"></ul>
-            </div>
-        </div>
-    </main>
+    <main id="main"></main>
     <footer></footer>
-    <script src="https://nora-tetsu.github.io/Chanoma/chanoma.js" type="text/javascript"></script>
+    <script>
+        const DOM = {
+            title: document.getElementById('title'),
+            main: document.getElementById('main'),
+            scroll: document.getElementById('scroll'),
+        }
+
+        DOM.title.addEventListener('click', () => {
+            DOM.main.scrollTop = 0;
+        })
+
+        DOM.scroll.addEventListener('change', () => {
+            const date = DOM.scroll.value;
+            if (!date) return;
+            const elm = document.getElementById(date);
+            if (elm) elm.scrollIntoView({ behavior: "smooth" });
+        })
+
+        function createSection(date, text) {
+            const section = DOM.main.appendChild(document.createElement('section'));
+            section.id = date;
+            const index = section.appendChild(document.createElement('p'));
+            index.classList.add('index');
+            index.textContent = date;
+            const content = section.appendChild(document.createElement('p'));
+            content.classList.add('content');
+            content.textContent = text;
+            content.contentEditable = true;
+            return section;
+        }
+
+        /** @param {{date:string,text:string}[]} DATA */
+        function setData(DATA) {
+            DOM.main.innerHTML = '';
+            for (const data of DATA) {
+                createSection(data.date, data.text);
+            }
+        }
+
+        function getData() {
+            const arr = [];
+            const sections = DOM.main.querySelectorAll('section');
+            for (const section of sections) {
+                const text = section.querySelector('p.content').textContent;
+                if (!text) continue;
+                arr.push({
+                    date: section.id,
+                    text: text,
+                })
+            }
+            return arr;
+        }
+
+        const json = 'https://nora-tetsu.github.io/Chanoma/chanomaData.json';
+        fetch(json)
+            .then(response => response.text())
+            .then(result => {
+                const DATA = JSON.parse(result);
+                DATA.sort((a, b) => new Date(b.date) - new Date(a.date));
+                setData(DATA);
+            })
+    </script>
 </body>
+
 </html>
